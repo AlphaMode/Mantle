@@ -13,10 +13,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.SerializationTags;
+import net.minecraft.tags.StaticTags;
 import net.minecraft.tags.TagCollection;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
@@ -34,6 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -170,7 +174,7 @@ public class TagsForCommand {
         FluidStack fluidStack = handler.getFluidInTank(0);
         if (!fluidStack.isEmpty()) {
           Fluid fluid = fluidStack.getFluid();
-          return printOwningTags(context, SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY), Registry.FLUID_REGISTRY.getLocation(), Objects.requireNonNull(fluid.getRegistryName()), fluid);
+          return printOwningTags(context, SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY), Registry.FLUID_REGISTRY.location(), Objects.requireNonNull(fluid.getRegistryName()), fluid);
         }
       }
     }
@@ -185,7 +189,7 @@ public class TagsForCommand {
     Potion potion = PotionUtils.getPotion(stack);
     if (potion != Potions.EMPTY) {
       ResourceLocation registry = Registry.POTION_REGISTRY.location();
-      return printOwningTags(context, ForgeTagHandler.getCustomTagTypes().get(registry), registry, Objects.requireNonNull(potion.getRegistryName()), potion);
+      return printOwningTags(context, StaticTags.get(registry).getAllTags(), registry, Objects.requireNonNull(potion.getRegistryName()), potion);
     }
     source.sendSuccess(NO_HELD_POTION, true);
     return 0;
@@ -199,7 +203,7 @@ public class TagsForCommand {
     if (!enchantments.isEmpty()) {
       int totalTags = 0;
       ResourceLocation registry = Registry.ENCHANTMENT_REGISTRY.location();
-      TagCollection<?> enchantmentTags = ForgeTagHandler.getCustomTagTypes().get(registry);
+      TagCollection<?> enchantmentTags = StaticTags.get(registry).getAllTags();
       // print tags for each contained enchantment
       for (Enchantment enchantment : enchantments.keySet()) {
         totalTags += printOwningTags(context, enchantmentTags, registry, Objects.requireNonNull(enchantment.getRegistryName()), enchantment);
@@ -241,11 +245,11 @@ public class TagsForCommand {
       if (be != null) {
         BlockEntityType<?> type = be.getType();
         ResourceLocation registry = Registry.BLOCK_ENTITY_TYPE_REGISTRY.location();
-        return printOwningTags(context, ForgeTagHandler.getCustomTagTypes().get(registry), registry, Objects.requireNonNull(type.getRegistryName()), type);
+        return printOwningTags(context, StaticTags.get(registry).getAllTags(), registry, Objects.requireNonNull(type.getRegistryName()), type);
       }
     }
     // failed
-    source.sendFeedback(NO_TARGETED_TILE_ENTITY, true);
+    source.sendFailure(NO_TARGETED_TILE_ENTITY);
     return 0;
   }
 
@@ -262,11 +266,11 @@ public class TagsForCommand {
     Vec3 look = player.getLookAngle();
     double range = Objects.requireNonNull(player.getAttribute(ForgeMod.REACH_DISTANCE.get())).getValue();
     Vec3 direction = start.add(look.x * range, look.y * range, look.z * range);
-    AABB bb = player.getBoundingBox().expand(look.x * range, look.y * range, look.z * range).expand(1, 1, 1);
-    EntityRayTraceResult entityTrace = ProjectileHelper.rayTraceEntities(source.getWorld(), player, start, direction, bb, e -> true);
+    AABB bb = player.getBoundingBox().inflate(look.x * range, look.y * range, look.z * range).inflate(1, 1, 1);
+    EntityHitResult entityTrace = ProjectileUtil.getEntityHitResult(source.getLevel(), player, start, direction, bb, e -> true);
     if (entityTrace != null) {
       EntityType<?> target = entityTrace.getEntity().getType();
-      return printOwningTags(context, TagCollectionManager.getManager().getEntityTypeTags(), Registry.ENTITY_TYPE_KEY.getLocation(), Objects.requireNonNull(target.getRegistryName()), target);
+      return printOwningTags(context, EntityTypeTags.getAllTags(), Registry.ENTITY_TYPE_REGISTRY.location(), Objects.requireNonNull(target.getRegistryName()), target);
     }
     // failed
     source.sendSuccess(NO_TARGETED_ENTITY, true);

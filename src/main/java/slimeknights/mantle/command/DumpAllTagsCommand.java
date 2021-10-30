@@ -16,6 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.Tag;
 import net.minecraft.util.GsonHelper;
 
 import net.minecraftforge.common.ForgeTagHandler;
@@ -35,6 +36,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static slimeknights.mantle.command.DumpTagCommand.GSON;
 
@@ -106,7 +108,7 @@ public class DumpAllTagsCommand {
    * @throws CommandSyntaxException  If invalid values are passed
    */
   private static int runForFolder(CommandContext<CommandSourceStack> context, ResourceLocation tagType, String tagFolder, File output) throws CommandSyntaxException {
-    Map<ResourceLocation, Builder> foundTags = Maps.newHashMap();
+    Map<ResourceLocation, Tag.Builder> foundTags = Maps.newHashMap();
     MinecraftServer server = context.getSource().getServer();
     ResourceManager manager = server.getServerResources().getResourceManager();
 
@@ -123,13 +125,13 @@ public class DumpAllTagsCommand {
           ) {
             JsonObject json = GsonHelper.fromJson(GSON, reader, JsonObject.class);
             if (json == null) {
-              Mantle.logger.error("Couldn't load {} tag list {} from {} in data pack {} as it is empty or null", tagType, tagId, resourcePath, resource.getPackName());
+              Mantle.logger.error("Couldn't load {} tag list {} from {} in data pack {} as it is empty or null", tagType, tagId, resourcePath, resource.getSourceName());
             } else {
               // store by the resource path instead of the ID, thats the one we want at the end
-              foundTags.computeIfAbsent(resourcePath, id -> Builder.create()).deserialize(json, resource.getSourceName());
+              foundTags.computeIfAbsent(resourcePath, id -> Tag.Builder.tag()).addFromJson(json, resource.getSourceName());
             }
           } catch (RuntimeException | IOException ex) {
-            Mantle.logger.error("Couldn't read {} tag list {} from {} in data pack {}", tagType, tagId, resourcePath, resource.getPackName(), ex);
+            Mantle.logger.error("Couldn't read {} tag list {} from {} in data pack {}", tagType, tagId, resourcePath, resource.getSourceName(), ex);
           } finally {
             IOUtils.closeQuietly(resource);
           }
@@ -140,13 +142,13 @@ public class DumpAllTagsCommand {
     }
 
     // save all tags
-    for (Entry<ResourceLocation, Builder> entry : foundTags.entrySet()) {
+    for (Map.Entry<ResourceLocation, Tag.Builder> entry : foundTags.entrySet()) {
       ResourceLocation location = entry.getKey();
       Path path = output.toPath().resolve(location.getNamespace() + "/" + location.getPath());
       try {
         Files.createDirectories(path.getParent());
         try (BufferedWriter writer = Files.newBufferedWriter(path)) {
-          writer.write(GSON.toJson(entry.getValue().serialize()));
+          writer.write(GSON.toJson(entry.getValue().serializeToJson()));
         }
       } catch (IOException ex) {
         Mantle.logger.error("Couldn't save tags to {}", path, ex);

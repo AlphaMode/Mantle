@@ -18,7 +18,7 @@ import java.util.Random;
  * @param <T>  Baked model parent
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class DynamicBakedWrapper<T extends BakedModel> extends BakedModelWrapper<T> {
+public abstract class DynamicBakedWrapper<T extends net.minecraft.client.resources.model.BakedModel> extends BakedModelWrapper<T> {
 
   protected DynamicBakedWrapper(T originalModel) {
     super(originalModel);

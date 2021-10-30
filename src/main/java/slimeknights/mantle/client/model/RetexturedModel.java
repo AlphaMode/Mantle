@@ -148,9 +148,9 @@ public class RetexturedModel implements IModelGeometry<RetexturedModel> {
   }
 
   /** Baked variant of the model, used to swap out quads based on the texture */
-  public static class BakedModel extends DynamicBakedWrapper<BakedModel> {
+  public static class BakedModel extends DynamicBakedWrapper<net.minecraft.client.resources.model.BakedModel> {
     /** Cache of texture name to baked model */
-    private final Map<ResourceLocation,BakedModel> cache = new HashMap<>();
+    private final Map<ResourceLocation,net.minecraft.client.resources.model.BakedModel> cache = new HashMap<>();
     /* Properties for rebaking */
     private final IModelConfiguration owner;
     private final SimpleBlockModel model;
@@ -171,7 +171,7 @@ public class RetexturedModel implements IModelGeometry<RetexturedModel> {
      * @param name  Texture location
      * @return  Retextured model
      */
-    private BakedModel getRetexturedModel(ResourceLocation name) {
+    private net.minecraft.client.resources.model.BakedModel getRetexturedModel(ResourceLocation name) {
       return model.bakeDynamic(new RetexturedConfiguration(owner, retextured, name), transform);
     }
 
@@ -180,20 +180,20 @@ public class RetexturedModel implements IModelGeometry<RetexturedModel> {
      * @param block  Block determining the texture
      * @return  Retextured model
      */
-    private BakedModel getCachedModel(Block block) {
+    private net.minecraft.client.resources.model.BakedModel getCachedModel(Block block) {
       return cache.computeIfAbsent(ModelHelper.getParticleTexture(block), this::getRetexturedModel);
     }
 
     @Override
-    public TextureAtlasSprite getParticleTexture(IModelData data) {
+    public TextureAtlasSprite getParticleIcon(IModelData data) {
       // if particle is retextured, fetch particle from the cached model
       if (retextured.contains("particle")) {
         Block block = data.getData(RetexturedHelper.BLOCK_PROPERTY);
         if (block != null) {
-          return getCachedModel(block).getParticleTexture(data);
+          return getCachedModel(block).getParticleIcon(data);
         }
       }
-      return originalModel.getParticleTexture(data);
+      return originalModel.getParticleIcon(data);
     }
 
     @Override
@@ -255,7 +255,7 @@ public class RetexturedModel implements IModelGeometry<RetexturedModel> {
 
     @Nullable
     @Override
-    public BakedModel resolve(BakedModel originalModel, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity) {
+    public net.minecraft.client.resources.model.BakedModel resolve(net.minecraft.client.resources.model.BakedModel originalModel, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int unknown) {
       if (stack.isEmpty() || !stack.hasTag()) {
         return originalModel;
       }

@@ -72,7 +72,7 @@ public class ExtraHeartRenderHandler {
     }
 
     // extra setup stuff from us
-    int left_height = ForgeIngameGui.left_height;
+    int left_height = ((ForgeIngameGui) Minecraft.getInstance().gui).left_height;
     int width = this.mc.getWindow().getGuiScaledWidth();
     int height = this.mc.getWindow().getGuiScaledHeight();
     int updateCounter = this.mc.gui.getGuiTicks();
@@ -180,16 +180,16 @@ public class ExtraHeartRenderHandler {
     this.renderExtraHearts(matrixStack, left, top, player);
     this.renderExtraAbsorption(matrixStack, left, top - rowHeight, player);
 
-    this.mc.getTextureManager().bind(ICON_VANILLA);
-    ForgeIngameGui.left_height += 10;
+    this.mc.getTextureManager().bindForSetup(ICON_VANILLA);
+    ((ForgeIngameGui) Minecraft.getInstance().gui).left_height += 10;
     if (absorb > 0) {
-      ForgeIngameGui.left_height += 10;
+      ((ForgeIngameGui) Minecraft.getInstance().gui).left_height += 10;
     }
 
     event.setCanceled(true);
     RenderSystem.disableBlend();
     this.mc.getProfiler().pop();
-    MinecraftForge.EVENT_BUS.post(new RenderGameOverlayEvent.Post(matrixStack, event, HEALTH));
+//    MinecraftForge.EVENT_BUS.post(new RenderGameOverlayEvent.Post(matrixStack, event, HEALTH)); TODO Figure out why its done this way.
   }
 
   /**
@@ -225,7 +225,7 @@ public class ExtraHeartRenderHandler {
     int potionOffset = this.getPotionOffset(player);
 
     // Extra hearts
-    this.mc.getTextureManager().bind(ICON_HEARTS);
+    this.mc.getTextureManager().bindForSetup(ICON_HEARTS);
     int hp = Mth.ceil(player.getHealth());
     this.renderCustomHearts(matrixStack, xBasePos, yBasePos, potionOffset, hp, false);
   }
@@ -241,7 +241,7 @@ public class ExtraHeartRenderHandler {
     int potionOffset = this.getPotionOffset(player);
 
     // Extra hearts
-    this.mc.getTextureManager().bind(ICON_ABSORB);
+    this.mc.getTextureManager().bindForSetup(ICON_ABSORB);
     int absorb = Mth.ceil(player.getAbsorptionAmount());
     this.renderCustomHearts(matrixStack, xBasePos, yBasePos, potionOffset, absorb, true);
   }

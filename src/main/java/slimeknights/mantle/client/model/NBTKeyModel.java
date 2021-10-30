@@ -138,7 +138,7 @@ public class NBTKeyModel implements IModelGeometry<NBTKeyModel> {
     private final Map<String,BakedModel> variants;
 
     @Override
-    public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity livingEntity) {
+    public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity livingEntity, int unknown) {
       CompoundTag nbt = stack.getTag();
       if (nbt != null && nbt.contains(nbtKey)) {
         return variants.getOrDefault(nbt.getString(nbtKey), model);

@@ -6,6 +6,7 @@ import com.google.gson.JsonParseException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,6 +23,7 @@ import com.mojang.math.Vector3f;
 import net.minecraftforge.client.model.pipeline.BakedQuadBuilder;
 import net.minecraftforge.client.model.pipeline.VertexTransformer;
 import net.minecraftforge.resource.VanillaResourceType;
+import slimeknights.mantle.client.IEarlySelectiveReloadListener;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -35,7 +37,7 @@ import java.util.function.Function;
 public class ModelHelper {
   private static final Map<Block,ResourceLocation> TEXTURE_NAME_CACHE = new HashMap<>();
   /** Listener instance to clear cache */
-  public static final ResourceManager LISTENER = (manager, predicate) -> {
+  public static final IEarlySelectiveReloadListener LISTENER = (manager, predicate) -> {
     if (predicate.test(VanillaResourceType.MODELS)) {
       TEXTURE_NAME_CACHE.clear();
     }

@@ -40,16 +40,16 @@ public class FluidsModel implements IModelGeometry<FluidsModel> {
 
   @Override
   public BakedModel bake(IModelConfiguration owner, ModelBakery bakery, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
-    BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
+    net.minecraft.client.resources.model.BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
     return new BakedModel(baked, fluids);
   }
 
   /** Baked model, mostly a data wrapper around a normal model */
   @SuppressWarnings("WeakerAccess")
-  public static class BakedModel extends BakedModelWrapper<BakedModel> {
+  public static class BakedModel extends BakedModelWrapper<net.minecraft.client.resources.model.BakedModel> {
     @Getter
     private final List<FluidCuboid> fluids;
-    public BakedModel(BakedModel originalModel, List<FluidCuboid> fluids) {
+    public BakedModel(net.minecraft.client.resources.model.BakedModel originalModel, List<FluidCuboid> fluids) {
       super(originalModel);
       this.fluids = fluids;
     }

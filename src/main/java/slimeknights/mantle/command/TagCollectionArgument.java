@@ -1,6 +1,7 @@
 package slimeknights.mantle.command;
 
 import com.google.common.collect.AbstractIterator;
+import com.mojang.brigadier.Message;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -12,8 +13,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.Registry;
 import net.minecraft.tags.SerializationTags;
+import net.minecraft.tags.StaticTags;
 import net.minecraft.tags.TagCollection;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -67,9 +71,9 @@ public class TagCollectionArgument implements ArgumentType<TagCollectionArgument
       }
 
       // then forge tags
-      TagCollection<?> collection = ForgeTagHandler.getCustomTagTypes().get(name);
+      TagCollection<?> collection = StaticTags.get(name).getAllTags();
       String tagFolder = registry.getTagFolder();
-      if (collection != null && tagFolder != null) {
+      if (tagFolder != null) {
         return Result.of(name, tagFolder, registry, collection);
       }
     }
@@ -78,7 +82,7 @@ public class TagCollectionArgument implements ArgumentType<TagCollectionArgument
 
   @Override
   public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-    return ISuggestionProvider.suggestIterable(ALL_COLLECTIONS_ITERABLE, builder);
+    return SharedSuggestionProvider.suggest(ALL_COLLECTIONS_ITERABLE, builder, ResourceLocation::toString, resourceLocation -> resourceLocation::toString);
   }
 
   @Override
@@ -98,10 +102,10 @@ public class TagCollectionArgument implements ArgumentType<TagCollectionArgument
   /** Enum containing all vanilla tag collection types */
   @AllArgsConstructor
   protected enum VanillaTagType {
-    BLOCK(Registry.BLOCK_REGISTRY.location(),             () -> SerializationTags.getInstance().getBlockTags()),
-    ITEM(Registry.ITEM_REGISTRY.location(),               () -> SerializationTags.getInstance().getItemTags()),
-    FLUID(Registry.FLUID_REGISTRY.location(),             () -> SerializationTags.getInstance().getFluidTags()),
-    ENTITY_TYPE(Registry.ENTITY_TYPE_REGISTRY.location(), () -> SerializationTags.getInstance().getEntityTypeTags());
+    BLOCK(Registry.BLOCK_REGISTRY.location(),             () -> SerializationTags.getInstance().getOrEmpty(Registry.BLOCK_REGISTRY)),
+    ITEM(Registry.ITEM_REGISTRY.location(),               () -> SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY)),
+    FLUID(Registry.FLUID_REGISTRY.location(),             () -> SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY)),
+    ENTITY_TYPE(Registry.ENTITY_TYPE_REGISTRY.location(), () -> SerializationTags.getInstance().getOrEmpty(Registry.ENTITY_TYPE_REGISTRY));
 
     @Getter
     private final ResourceLocation name;

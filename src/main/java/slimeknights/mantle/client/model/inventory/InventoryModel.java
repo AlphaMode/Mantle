@@ -40,16 +40,16 @@ public class InventoryModel implements IModelGeometry<InventoryModel> {
 
   @Override
   public BakedModel bake(IModelConfiguration owner, ModelBakery bakery, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
-    BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
+    net.minecraft.client.resources.model.BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
     return new BakedModel(baked, items);
   }
 
   /** Baked model, mostly a data wrapper around a normal model */
   @SuppressWarnings("WeakerAccess")
-  public static class BakedModel extends BakedModelWrapper<BakedModel> {
+  public static class BakedModel extends BakedModelWrapper<net.minecraft.client.resources.model.BakedModel> {
     @Getter
     private final List<ModelItem> items;
-    public BakedModel(BakedModel originalModel, List<ModelItem> items) {
+    public BakedModel(net.minecraft.client.resources.model.BakedModel originalModel, List<ModelItem> items) {
       super(originalModel);
       this.items = items;
     }

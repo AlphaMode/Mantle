@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.AttackIndicatorStatus;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -105,7 +106,7 @@ public class ClientEvents {
     PoseStack matrixStack = event.getMatrixStack();
     switch (settings.attackIndicator) {
       case CROSSHAIR:
-        if (event.getType() == ElementType.CROSSHAIRS && minecraft.options.getCameraType().isFirstPerson()) {
+        if (/*event.getType() == ElementType.CROSSHAIRS &&*/ minecraft.options.getCameraType().isFirstPerson()) {
           if (!settings.renderDebug || settings.hideGui || minecraft.player.isReducedDebugInfo() || settings.reducedDebugInfo) {
             // mostly cloned from vanilla attack indicator
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
@@ -114,14 +115,14 @@ public class ClientEvents {
             int y = (scaledHeight / 2) - 14 + (2 * (scaledHeight % 2));
             int x = minecraft.getWindow().getGuiScaledWidth() / 2 - 8;
             int width = (int)(cooldown * 17.0F);
-            minecraft.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
+            minecraft.getTextureManager().bindForSetup(GuiComponent.GUI_ICONS_LOCATION);
             minecraft.gui.blit(matrixStack, x, y, 36, 94, 16, 4);
             minecraft.gui.blit(matrixStack, x, y, 52, 94, width, 4);
           }
         }
         break;
       case HOTBAR:
-        if (event.getType() == ElementType.HOTBAR && minecraft.cameraEntity == minecraft.player) {
+        if (/*event.getType() == ElementType.HOTBAR &&*/ minecraft.cameraEntity == minecraft.player) {
           int centerWidth = minecraft.getWindow().getGuiScaledWidth() / 2;
           int y = minecraft.getWindow().getGuiScaledHeight() - 20;
           int x;
@@ -131,9 +132,9 @@ public class ClientEvents {
           } else {
             x = centerWidth + 91 + 6 + 32;
           }
-          minecraft.getTextureManager().bind(GuiComponent.GUI_ICONS_LOCATION);
+          minecraft.getTextureManager().bindForSetup(GuiComponent.GUI_ICONS_LOCATION);
           int l1 = (int)(cooldown * 19.0F);
-          RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+          RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
           minecraft.gui.blit(matrixStack, x, y, 0, 94, 18, 18);
           minecraft.gui.blit(matrixStack, x, y + 18 - l1, 18, 112 - l1, 18, l1);
         }

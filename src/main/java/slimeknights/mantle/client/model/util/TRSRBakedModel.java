@@ -108,8 +108,8 @@ public class TRSRBakedModel extends DynamicBakedWrapper<BakedModel> {
 
     @Nullable
     @Override
-    public BakedModel resolve(BakedModel originalModel, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity) {
-      BakedModel baked = this.model.originalModel.getOverrides().resolve(originalModel, stack, world, entity);
+    public BakedModel resolve(BakedModel originalModel, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int unknown) {
+      BakedModel baked = this.model.originalModel.getOverrides().resolve(originalModel, stack, world, entity, unknown);
       if (baked == null) {
         return null;
       }

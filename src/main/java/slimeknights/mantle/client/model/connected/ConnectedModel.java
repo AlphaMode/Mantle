@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockFaceUV;
 import net.minecraft.client.renderer.block.model.BlockElement;
 import net.minecraft.client.renderer.block.model.BlockElementFace;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -130,20 +129,20 @@ public class ConnectedModel implements IModelGeometry<ConnectedModel> {
   }
 
   @Override
-  public BakedModel bake(IModelConfiguration owner, ModelBakery bakery, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
-    BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
-    return new BakedModel(this, new ExtraTextureConfiguration(owner, extraTextures), transform, baked);
+  public BakedModelWrapper bake(IModelConfiguration owner, ModelBakery bakery, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
+    net.minecraft.client.resources.model.BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
+    return new BakedModelWrapper(this, new ExtraTextureConfiguration(owner, extraTextures), transform, baked);
   }
 
   @SuppressWarnings("WeakerAccess")
-  protected static class BakedModel extends DynamicBakedWrapper<BakedModel> {
+  protected static class BakedModelWrapper extends DynamicBakedWrapper<net.minecraft.client.resources.model.BakedModel> {
     private final ConnectedModel parent;
     private final IModelConfiguration owner;
     private final ModelState transforms;
-    private final BakedModel[] cache = new BakedModel[64];
+    private final net.minecraft.client.resources.model.BakedModel[] cache = new BakedModelWrapper[64];
     private final Map<String,String> nameMappingCache = new HashMap<>();
     private final ModelTextureIteratable modelTextures;
-    public BakedModel(ConnectedModel parent, IModelConfiguration owner, ModelState transforms, BakedModel baked) {
+    public BakedModelWrapper(ConnectedModel parent, IModelConfiguration owner, ModelState transforms, net.minecraft.client.resources.model.BakedModel baked) {
       super(baked);
       this.parent = parent;
       this.owner = owner;
@@ -307,7 +306,7 @@ public class ConnectedModel implements IModelGeometry<ConnectedModel> {
      * @param connections  Array of face connections, true at indexes of connected sides
      * @return  Model with connections applied
      */
-    private BakedModel applyConnections(byte connections) {
+    private net.minecraft.client.resources.model.BakedModel applyConnections(byte connections) {
       // copy each element with updated faces
       List<BlockElement> elements = Lists.newArrayList();
       for (BlockElement part : parent.model.getElements()) {
