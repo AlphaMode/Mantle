@@ -46,12 +46,12 @@ public class SelectionElement extends SizedBookElement {
       fill(matrixStack, this.iconX, this.iconY, this.iconX + IMG_SIZE, this.iconY + IMG_SIZE, this.parent.book.appearance.hoverColor);
     }
     if (unlocked) {
-      RenderSystem.color4f(1F, 1F, 1F, hover ? 1F : 0.5F);
+      RenderSystem.setShaderColor(1F, 1F, 1F, hover ? 1F : 0.5F);
     } else {
       float r = ((this.parent.book.appearance.lockedSectionColor >> 16) & 0xff) / 255.F;
       float g = ((this.parent.book.appearance.lockedSectionColor >> 8) & 0xff) / 255.F;
       float b = (this.parent.book.appearance.lockedSectionColor & 0xff) / 255.F;
-      RenderSystem.color4f(r, g, b, 0.75F);
+      RenderSystem.setShaderColor(r, g, b, 0.75F);
     }
 
     this.iconRenderer.draw(matrixStack, mouseX, mouseY, partialTicks, fontRenderer);

@@ -10,15 +10,17 @@ import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICustomCraftingCategoryExtension;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+
 import net.minecraftforge.common.util.Size2i;
 import slimeknights.mantle.item.RetexturedBlockItem;
 import slimeknights.mantle.recipe.crafting.ShapedRetexturedRecipe;
@@ -88,7 +90,7 @@ public class RetexturedRecipeExtension implements ICraftingCategoryExtension, IC
     // determine the focused stack
     List<List<ItemStack>> inputs = ingredients.getInputs(VanillaTypes.ITEM);
     List<ItemStack> outputs = displayOutputs;
-    IFocus<?> ifocus = recipeLayout.getFocus();
+    IFocus<?> ifocus = recipeLayout.getFocus(VanillaTypes.ITEM);
     if (ifocus != null && ifocus.getValue() instanceof ItemStack) {
       IGuiIngredientGroup<ItemStack> guiIngredients = recipeLayout.getIngredientsGroup(VanillaTypes.ITEM);
       ItemStack focus = (ItemStack)ifocus.getValue();
@@ -103,7 +105,7 @@ public class RetexturedRecipeExtension implements ICraftingCategoryExtension, IC
       else if (mode == IFocus.Mode.OUTPUT) {
         // the focus might not be the same count as the output
         ItemStack output = focus.copy();
-        output.setCount(recipe.getRecipeOutput().getCount());
+        output.setCount(recipe.getRecipeOutput(output.getItem()).getCount());
         outputs = ImmutableList.of(output);
 
         // focus texture may be undefined for the mixed planks bookshelf or missing NBT
@@ -120,7 +122,7 @@ public class RetexturedRecipeExtension implements ICraftingCategoryExtension, IC
   }
 
   @Override
-  public void onTooltip(int slotIndex, boolean input, ItemStack ingredient, List<ITextComponent> tooltip) {
+  public void onTooltip(int slotIndex, boolean input, ItemStack ingredient, List<Component> tooltip) {
     ResourceLocation registryName = this.getRegistryName();
     if (slotIndex == 0 && registryName != null) {
       if (JEIPlugin.modIdHelper.isDisplayingModNameEnabled()) {
@@ -134,13 +136,13 @@ public class RetexturedRecipeExtension implements ICraftingCategoryExtension, IC
 
         if (modIdDifferent) {
           String modName = JEIPlugin.modIdHelper.getFormattedModNameForModId(recipeModId);
-          tooltip.add(new TranslationTextComponent("jei.tooltip.recipe.by", modName).mergeStyle(TextFormatting.GRAY));
+          tooltip.add(new TranslatableComponent("jei.tooltip.recipe.by", modName).withStyle(ChatFormatting.GRAY));
         }
       }
 
-      boolean showAdvanced = Minecraft.getInstance().gameSettings.advancedItemTooltips || Screen.hasShiftDown();
+      boolean showAdvanced = Minecraft.getInstance().options.advancedItemTooltips || Screen.hasShiftDown();
       if (showAdvanced) {
-        tooltip.add(new TranslationTextComponent("jei.tooltip.recipe.id", registryName).mergeStyle(TextFormatting.DARK_GRAY));
+        tooltip.add(new TranslatableComponent("jei.tooltip.recipe.id", registryName).withStyle(ChatFormatting.DARK_GRAY));
       }
     }
   }

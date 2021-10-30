@@ -12,11 +12,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.tags.ITagCollection;
-import net.minecraft.tags.TagCollectionManager;
+import net.minecraft.core.Registry;
+import net.minecraft.tags.SerializationTags;
+import net.minecraft.tags.TagCollection;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.ForgeTagHandler;
 import net.minecraftforge.registries.ForgeRegistry;
@@ -68,7 +67,7 @@ public class TagCollectionArgument implements ArgumentType<TagCollectionArgument
       }
 
       // then forge tags
-      ITagCollection<?> collection = ForgeTagHandler.getCustomTagTypes().get(name);
+      TagCollection<?> collection = ForgeTagHandler.getCustomTagTypes().get(name);
       String tagFolder = registry.getTagFolder();
       if (collection != null && tagFolder != null) {
         return Result.of(name, tagFolder, registry, collection);
@@ -93,22 +92,22 @@ public class TagCollectionArgument implements ArgumentType<TagCollectionArgument
     private final ResourceLocation name;
     private final String tagFolder;
     private final ForgeRegistry<?> registry;
-    private final ITagCollection<?> collection;
+    private final TagCollection<?> collection;
   }
 
   /** Enum containing all vanilla tag collection types */
   @AllArgsConstructor
   protected enum VanillaTagType {
-    BLOCK(Registry.BLOCK_KEY.getLocation(),             () -> TagCollectionManager.getManager().getBlockTags()),
-    ITEM(Registry.ITEM_KEY.getLocation(),               () -> TagCollectionManager.getManager().getItemTags()),
-    FLUID(Registry.FLUID_KEY.getLocation(),             () -> TagCollectionManager.getManager().getFluidTags()),
-    ENTITY_TYPE(Registry.ENTITY_TYPE_KEY.getLocation(), () -> TagCollectionManager.getManager().getEntityTypeTags());
+    BLOCK(Registry.BLOCK_REGISTRY.location(),             () -> SerializationTags.getInstance().getBlockTags()),
+    ITEM(Registry.ITEM_REGISTRY.location(),               () -> SerializationTags.getInstance().getItemTags()),
+    FLUID(Registry.FLUID_REGISTRY.location(),             () -> SerializationTags.getInstance().getFluidTags()),
+    ENTITY_TYPE(Registry.ENTITY_TYPE_REGISTRY.location(), () -> SerializationTags.getInstance().getEntityTypeTags());
 
     @Getter
     private final ResourceLocation name;
-    private final Supplier<ITagCollection<?>> supplier;
+    private final Supplier<TagCollection<?>> supplier;
 
-    public ITagCollection<?> getCollection() {
+    public TagCollection<?> getCollection() {
       return supplier.get();
     }
 

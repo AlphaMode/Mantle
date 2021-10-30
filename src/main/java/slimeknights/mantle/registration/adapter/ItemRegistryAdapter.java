@@ -1,5 +1,6 @@
 package slimeknights.mantle.registration.adapter;
 
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.data.models.blockstates.PropertyDispatch.TriFunction;
 import net.minecraft.world.entity.EntityType;
@@ -269,7 +270,7 @@ public class ItemRegistryAdapter extends EnumRegistryAdapter<Item> {
    * @param baseName   Entity name, as it may or may not be present in the entity type
    * @return  Spawn egg item instance
    */
-  public SpawnEggItem registerSpawnEgg(EntityType<?> entity, int primary, int secondary, String baseName) {
+  public SpawnEggItem registerSpawnEgg(EntityType<? extends Mob> entity, int primary, int secondary, String baseName) {
     return register(new SpawnEggItem(entity, primary, secondary, ItemProperties.EGG_PROPS), baseName + "_spawn_egg");
   }
 }

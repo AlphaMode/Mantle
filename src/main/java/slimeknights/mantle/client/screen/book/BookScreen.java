@@ -119,61 +119,59 @@ public class BookScreen extends Screen {
       fontRenderer.draw(matrixStack, "DEBUG", 2, 2, 0xFFFFFFFF);
     }
 
-    RenderSystem.enableAlphaTest();
+    //RenderSystem.enableAlphaTest();
     RenderSystem.enableBlend();
 
     // The books are unreadable at Gui Scale set to small, so we'll double the scale
-    RenderSystem.pushMatrix();
-    RenderSystem.color3f(1F, 1F, 1F);
+    matrixStack.pushPose();
+    RenderSystem.setShaderColor(1F, 1F, 1F, 0F);
 
     float coverR = ((this.book.appearance.coverColor >> 16) & 0xff) / 255.F;
     float coverG = ((this.book.appearance.coverColor >> 8) & 0xff) / 255.F;
     float coverB = (this.book.appearance.coverColor & 0xff) / 255.F;
 
-    TextureManager render = this.minecraft.textureManager;
-
     if (this.page == -1) {
-      render.bind(TEX_BOOKFRONT);
-      Lighting.turnOff();
+      RenderSystem.setShaderTexture(0, TEX_BOOKFRONT);
+      Lighting.setupFor3DItems();
 
-      RenderSystem.color3f(coverR, coverG, coverB);
+      RenderSystem.setShaderColor(coverR, coverG, coverB, 0F);
       blit(matrixStack, this.width / 2 - PAGE_WIDTH_UNSCALED / 2, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, TEX_SIZE, TEX_SIZE);
-      RenderSystem.color3f(1F, 1F, 1F);
+      RenderSystem.setShaderColor(1F, 1F, 1F, 0F);
 
       if (!this.book.appearance.title.isEmpty()) {
         blit(matrixStack, this.width / 2 - PAGE_WIDTH_UNSCALED / 2, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, TEX_SIZE, TEX_SIZE);
 
-        RenderSystem.pushMatrix();
+        matrixStack.pushPose();
 
         float scale = fontRenderer.width(this.book.appearance.title) <= 67 ? 2.5F : 2F;
 
-        RenderSystem.scalef(scale, scale, 1F);
+        matrixStack.scale(scale, scale, 1F);
         fontRenderer.drawShadow(matrixStack, this.book.appearance.title, (this.width / 2) / scale + 3 - fontRenderer.width(this.book.appearance.title) / 2, (this.height / 2 - fontRenderer.lineHeight / 2) / scale - 4, 0xAE8000);
-        RenderSystem.popMatrix();
+        matrixStack.popPose();
       }
 
       if (!this.book.appearance.subtitle.isEmpty()) {
-        RenderSystem.pushMatrix();
-        RenderSystem.scalef(1.5F, 1.5F, 1F);
+        matrixStack.pushPose();
+        matrixStack.scale(1.5F, 1.5F, 1F);
         fontRenderer.drawShadow(matrixStack, this.book.appearance.subtitle, (this.width / 2) / 1.5F + 7 - fontRenderer.width(this.book.appearance.subtitle) / 2, (this.height / 2 + 100 - fontRenderer.lineHeight * 2) / 1.5F, 0xAE8000);
-        RenderSystem.popMatrix();
+        matrixStack.popPose();
       }
     } else {
-      render.bind(TEX_BOOK);
-      Lighting.turnOff();
+      RenderSystem.setShaderTexture(0, TEX_BOOK);
+      Lighting.setupFor3DItems();
 
-      RenderSystem.color3f(coverR, coverG, coverB);
+      RenderSystem.setShaderColor(coverR, coverG, coverB, 0F);
       blit(matrixStack, this.width / 2 - PAGE_WIDTH_UNSCALED, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, 0, PAGE_WIDTH_UNSCALED * 2, PAGE_HEIGHT_UNSCALED, TEX_SIZE, TEX_SIZE);
 
-      RenderSystem.color3f(1F, 1F, 1F);
+      RenderSystem.setShaderColor(1F, 1F, 1F, 0F);
 
       if (this.page != 0) {
         blit(matrixStack, this.width / 2 - PAGE_WIDTH_UNSCALED, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, 0, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, TEX_SIZE, TEX_SIZE);
 
-        RenderSystem.pushMatrix();
-        this.drawerTransform(false);
+        matrixStack.pushPose();
+        this.drawerTransform(matrixStack, false);
 
-        RenderSystem.scalef(PAGE_SCALE, PAGE_SCALE, 1F);
+        matrixStack.scale(PAGE_SCALE, PAGE_SCALE, 1F);
 
         if (this.book.appearance.drawPageNumbers) {
           String pNum = (this.page - 1) * 2 + 2 + "";
@@ -187,7 +185,7 @@ public class BookScreen extends Screen {
         for (int i = 0; i < this.leftElements.size(); i++) {
           BookElement element = this.leftElements.get(i);
 
-          RenderSystem.color4f(1F, 1F, 1F, 1F);
+          RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
           element.draw(matrixStack, mX, mY, partialTicks, fontRenderer);
         }
 
@@ -195,27 +193,27 @@ public class BookScreen extends Screen {
         for (int i = 0; i < this.leftElements.size(); i++) {
           BookElement element = this.leftElements.get(i);
 
-          RenderSystem.color4f(1F, 1F, 1F, 1F);
+          RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
           element.drawOverlay(matrixStack, mX, mY, partialTicks, fontRenderer);
         }
 
-        RenderSystem.popMatrix();
+        matrixStack.popPose();
       }
 
       // Rebind texture as the font renderer binds its own texture
-      render.bind(TEX_BOOK);
+      RenderSystem.setShaderTexture(0, TEX_BOOK);
       // Set color back to white
-      RenderSystem.color4f(1F, 1F, 1F, 1F);
-      Lighting.turnOff();
+      RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+      Lighting.setupFor3DItems();
 
       int fullPageCount = this.book.getFullPageCount(this.advancementCache);
       if (this.page < fullPageCount - 1 || this.book.getPageCount(this.advancementCache) % 2 != 0) {
         blit(matrixStack, this.width / 2, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, PAGE_WIDTH_UNSCALED, PAGE_HEIGHT_UNSCALED, TEX_SIZE, TEX_SIZE);
 
-        RenderSystem.pushMatrix();
-        this.drawerTransform(true);
+        matrixStack.pushPose();
+        this.drawerTransform(matrixStack, true);
 
-        RenderSystem.scalef(PAGE_SCALE, PAGE_SCALE, 1F);
+        matrixStack.scale(PAGE_SCALE, PAGE_SCALE, 1F);
 
         if (this.book.appearance.drawPageNumbers) {
           String pNum = (this.page - 1) * 2 + 3 + "";
@@ -229,7 +227,7 @@ public class BookScreen extends Screen {
         for (int i = 0; i < this.rightElements.size(); i++) {
           BookElement element = this.rightElements.get(i);
 
-          RenderSystem.color4f(1F, 1F, 1F, 1F);
+          RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
           element.draw(matrixStack, mX, mY, partialTicks, fontRenderer);
         }
 
@@ -237,17 +235,17 @@ public class BookScreen extends Screen {
         for (int i = 0; i < this.rightElements.size(); i++) {
           BookElement element = this.rightElements.get(i);
 
-          RenderSystem.color4f(1F, 1F, 1F, 1F);
+          RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
           element.drawOverlay(matrixStack, mX, mY, partialTicks, fontRenderer);
         }
 
-        RenderSystem.popMatrix();
+        matrixStack.popPose();
       }
     }
 
     super.render(matrixStack, mouseX, mouseY, partialTicks);
 
-    RenderSystem.popMatrix();
+    matrixStack.popPose();
   }
 
   @Override
@@ -261,10 +259,7 @@ public class BookScreen extends Screen {
       height /= 2F;
     }*/
 
-    this.buttons.clear();
-    this.children.clear();
-
-    this.previousArrow = this.addButton(new ArrowButton(-50, -50, ArrowButton.ArrowType.PREV, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
+    this.previousArrow = this.addRenderableWidget(new ArrowButton(-50, -50, ArrowButton.ArrowType.PREV, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
       this.page--;
 
       if (this.page < -1) {
@@ -275,7 +270,7 @@ public class BookScreen extends Screen {
       this.buildPages();
     }));
 
-    this.nextArrow = this.addButton(new ArrowButton(-50, -50, ArrowButton.ArrowType.NEXT, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
+    this.nextArrow = this.addRenderableWidget(new ArrowButton(-50, -50, ArrowButton.ArrowType.NEXT, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
       this.page++;
 
       int fullPageCount = this.book.getFullPageCount(this.advancementCache);
@@ -288,7 +283,7 @@ public class BookScreen extends Screen {
       this.buildPages();
     }));
 
-    this.backArrow = this.addButton(new ArrowButton(this.width / 2 - ArrowButton.WIDTH / 2, this.height / 2 + ArrowButton.HEIGHT / 2 + PAGE_HEIGHT / 2, ArrowButton.ArrowType.LEFT, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
+    this.backArrow = this.addRenderableWidget(new ArrowButton(this.width / 2 - ArrowButton.WIDTH / 2, this.height / 2 + ArrowButton.HEIGHT / 2 + PAGE_HEIGHT / 2, ArrowButton.ArrowType.LEFT, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
       if (this.oldPage >= -1) {
         this.page = this.oldPage;
       }
@@ -297,7 +292,7 @@ public class BookScreen extends Screen {
       this.buildPages();
     }));
 
-    this.indexArrow = this.addButton(new ArrowButton(this.width / 2 - PAGE_WIDTH_UNSCALED - ArrowButton.WIDTH / 2, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, ArrowButton.ArrowType.BACK_UP, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
+    this.indexArrow = this.addRenderableWidget(new ArrowButton(this.width / 2 - PAGE_WIDTH_UNSCALED - ArrowButton.WIDTH / 2, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2, ArrowButton.ArrowType.BACK_UP, this.book.appearance.arrowColor, this.book.appearance.arrowColorHover, (p_212998_1_) -> {
       this.openPage(this.book.findPageNumber("index.page1"));
 
       this.oldPage = -2;
@@ -310,7 +305,7 @@ public class BookScreen extends Screen {
         margin = 0;
       }
 
-      this.addButton(new Button(this.width / 2 - 196 / 2, this.height / 2 + PAGE_HEIGHT_UNSCALED / 2 + margin, 196, 20, new TranslatableComponent("lectern.take_book"), (p_212998_1_) -> {
+      this.addRenderableWidget(new Button(this.width / 2 - 196 / 2, this.height / 2 + PAGE_HEIGHT_UNSCALED / 2 + margin, 196, 20, new TranslatableComponent("lectern.take_book"), (p_212998_1_) -> {
         this.onClose();
         this.bookPickup.accept(null);
       }));
@@ -506,11 +501,11 @@ public class BookScreen extends Screen {
     return false;
   }
 
-  public void drawerTransform(boolean rightSide) {
+  public void drawerTransform(PoseStack stack, boolean rightSide) {
     if (rightSide) {
-      RenderSystem.translatef(this.width / 2 + PAGE_PADDING_RIGHT + PAGE_MARGIN, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
+      stack.translate(this.width / 2 + PAGE_PADDING_RIGHT + PAGE_MARGIN, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
     } else {
-      RenderSystem.translatef(this.width / 2 - PAGE_WIDTH_UNSCALED + PAGE_PADDING_LEFT + PAGE_MARGIN, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
+      stack.translate(this.width / 2 - PAGE_WIDTH_UNSCALED + PAGE_PADDING_LEFT + PAGE_MARGIN, this.height / 2 - PAGE_HEIGHT_UNSCALED / 2 + PAGE_PADDING_TOP + PAGE_MARGIN, 0);
     }
   }
 

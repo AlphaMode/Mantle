@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 import static slimeknights.mantle.registration.RegistrationHelper.castDelegate;
 
 /**
- * Registry object wrapper to implement {@link IItemProvider}
+ * Registry object wrapper to implement {@link ItemLike}
  * @param <I>  Item class
  */
 @SuppressWarnings({"unused", "WeakerAccess"})

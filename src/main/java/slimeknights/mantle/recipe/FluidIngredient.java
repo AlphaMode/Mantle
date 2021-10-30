@@ -7,6 +7,8 @@ import com.google.gson.JsonSyntaxException;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+
+import net.minecraft.core.Registry;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.network.FriendlyByteBuf;
@@ -348,7 +350,7 @@ public abstract class FluidIngredient {
     @Override
     public JsonElement serialize() {
       JsonObject object = new JsonObject();
-      object.addProperty("tag", SerializationTags.getInstance().getFluids().getIdOrThrow(this.tag).toString());
+      object.addProperty("tag", SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY).getId(this.tag).toString());
       object.addProperty("amount", amount);
       return object;
     }
@@ -360,7 +362,7 @@ public abstract class FluidIngredient {
      */
     private static TagMatch deserialize(JsonObject json) {
       String tagName = GsonHelper.getAsString(json, "tag");
-      Tag<Fluid> tag = SerializationTags.getInstance().getFluids().getTag(new ResourceLocation(tagName));
+      Tag<Fluid> tag = SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY).getTag(new ResourceLocation(tagName));
       if (tag == null) {
         throw new JsonSyntaxException("Unknown fluid tag '" + tagName + "'");
       }

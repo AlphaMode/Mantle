@@ -71,7 +71,7 @@ public class RetexturedModel implements IModelGeometry<RetexturedModel> {
   @Override
   public BakedModel bake(IModelConfiguration owner, ModelBakery bakery, Function<Material,TextureAtlasSprite> spriteGetter, ModelState transform, ItemOverrides overrides, ResourceLocation location) {
     // bake the model and return
-    BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
+    net.minecraft.client.resources.model.BakedModel baked = model.bakeModel(owner, transform, overrides, spriteGetter, location);
     return new BakedModel(baked, owner, model, transform, getAllRetextured(owner, this.model, retextured));
   }
 
@@ -158,7 +158,7 @@ public class RetexturedModel implements IModelGeometry<RetexturedModel> {
     /** List of texture names that are retextured */
     private final Set<String> retextured;
 
-    public BakedModel(BakedModel baked, IModelConfiguration owner, SimpleBlockModel model, ModelState transform, Set<String> retextured) {
+    public BakedModel(net.minecraft.client.resources.model.BakedModel baked, IModelConfiguration owner, SimpleBlockModel model, ModelState transform, Set<String> retextured) {
       super(baked);
       this.model = model;
       this.owner = owner;

@@ -2,11 +2,12 @@ package slimeknights.mantle.registration.deferred;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.fmllegacy.RegistryObject;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import slimeknights.mantle.registration.ItemProperties;
@@ -51,7 +52,7 @@ public class EntityTypeDeferredRegister extends DeferredRegisterWrapper<EntityTy
    * @param <T>   Entity class type
    * @return  Entity registry object
    */
-  public <T extends Entity> RegistryObject<EntityType<T>> registerWithEgg(String name, Supplier<EntityType.Builder<T>> sup, int primary, int secondary) {
+  public <T extends Mob> RegistryObject<EntityType<T>> registerWithEgg(String name, Supplier<EntityType.Builder<T>> sup, int primary, int secondary) {
     Lazy<EntityType<T>> lazy = Lazy.of(() -> sup.get().build(resourceName(name)));
     itemRegistry.register(name + "_spawn_egg", () -> new SpawnEggItem(lazy.get(), primary, secondary, ItemProperties.EGG_PROPS));
     return register.register(name, lazy);

@@ -1,6 +1,7 @@
 package slimeknights.mantle.block;
 
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -22,19 +23,14 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
  * Logic for a retexturable block. Use alongside {@link slimeknights.mantle.tileentity.IRetexturedTileEntity} and {@link slimeknights.mantle.item.RetexturedBlockItem}
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class RetexturedBlock extends Block {
+public abstract class RetexturedBlock extends Block implements EntityBlock {
   public RetexturedBlock(Properties properties) {
     super(properties);
   }
 
-  @Override
-  public boolean hasTileEntity(BlockState state) {
-    return true;
-  }
-
   @Nullable
   @Override
-  public abstract BlockEntity createTileEntity(BlockState state, BlockGetter world);
+  public abstract BlockEntity newBlockEntity(BlockPos pos, BlockState state);
 
   @Override
   public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
@@ -51,7 +47,7 @@ public abstract class RetexturedBlock extends Block {
   /* Utils */
 
   /**
-   * Call in {@link Block#onBlockPlacedBy(World, BlockPos, BlockState, LivingEntity, ItemStack)} to set the texture tag to the Tile Entity
+   * Call in {@link Block#setPlacedBy(Level, BlockPos, BlockState, LivingEntity, ItemStack)} to set the texture tag to the Tile Entity
    * @param world World where the block was placed
    * @param pos   Block position
    * @param stack Item stack

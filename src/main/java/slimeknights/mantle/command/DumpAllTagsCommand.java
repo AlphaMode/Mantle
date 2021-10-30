@@ -6,7 +6,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.ClickEvent;
@@ -15,6 +14,10 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.GsonHelper;
+
 import net.minecraftforge.common.ForgeTagHandler;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
@@ -54,7 +57,7 @@ public class DumpAllTagsCommand {
   }
 
   /** Gets the path for the output */
-  protected static File getOutputFile(CommandContext<CommandSource> context) {
+  protected static File getOutputFile(CommandContext<CommandSourceStack> context) {
     return context.getSource().getServer().getFile(TAG_DUMP_PATH);
   }
 
@@ -64,11 +67,11 @@ public class DumpAllTagsCommand {
    * @return  Clickable text component
    */
   protected static Component getOutputComponent(File file) {
-    return new TextComponent(file.getAbsolutePath()).modifyStyle(style -> style.setUnderlined(true).setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getAbsolutePath())));
+    return new TextComponent(file.getAbsolutePath()).withStyle(style -> style.setUnderlined(true).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getAbsolutePath())));
   }
 
   /** Dumps all tags to the game directory */
-  private static int runAll(CommandContext<CommandSource> context) throws CommandSyntaxException {
+  private static int runAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     File output = getOutputFile(context);
     int tagsDumped = 0;
     for (VanillaTagType type : VanillaTagType.values()) {
@@ -82,17 +85,17 @@ public class DumpAllTagsCommand {
       }
     }
     // print the output path
-    context.getSource().sendMessage(new TranslatableComponent("command.mantle.dump_all_tags.success", getOutputComponent(output)), true);
+    context.getSource().sendSuccess(new TranslatableComponent("command.mantle.dump_all_tags.success", getOutputComponent(output)), true);
     return tagsDumped;
   }
 
   /** Dumps a single type of tags to the game directory */
-  private static int runType(CommandContext<CommandSource> context) throws CommandSyntaxException {
+  private static int runType(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     File output = getOutputFile(context);
     TagCollectionArgument.Result type = context.getArgument("type", TagCollectionArgument.Result.class);
     int result = runForFolder(context, type.getName(), type.getTagFolder(), output);
     // print result
-    context.getSource().sendMessage(new TranslatableComponent("command.mantle.dump_all_tags.type_success", type.getName(), getOutputComponent(output)), true);
+    context.getSource().sendSuccess(new TranslatableComponent("command.mantle.dump_all_tags.type_success", type.getName(), getOutputComponent(output)), true);
     return result;
   }
 
@@ -102,28 +105,28 @@ public class DumpAllTagsCommand {
    * @return  Integer return
    * @throws CommandSyntaxException  If invalid values are passed
    */
-  private static int runForFolder(CommandContext<CommandSource> context, ResourceLocation tagType, String tagFolder, File output) throws CommandSyntaxException {
+  private static int runForFolder(CommandContext<CommandSourceStack> context, ResourceLocation tagType, String tagFolder, File output) throws CommandSyntaxException {
     Map<ResourceLocation, Builder> foundTags = Maps.newHashMap();
     MinecraftServer server = context.getSource().getServer();
-    IResourceManager manager = server.getDataPackRegistries().getResourceManager();
+    ResourceManager manager = server.getServerResources().getResourceManager();
 
     // iterate all tags from the datapack
     String dataPackFolder = "tags/" + tagFolder;
-    for (ResourceLocation resourcePath : manager.getAllResourceLocations(dataPackFolder, fileName -> fileName.endsWith(".json"))) {
+    for (ResourceLocation resourcePath : manager.listResources(dataPackFolder, fileName -> fileName.endsWith(".json"))) {
       String path = resourcePath.getPath();
       ResourceLocation tagId = new ResourceLocation(resourcePath.getNamespace(), path.substring(dataPackFolder.length() + 1, path.length() - EXTENSION_LENGTH));
       try {
-        for (IResource resource : manager.getAllResources(resourcePath)) {
+        for (Resource resource : manager.getResources(resourcePath)) {
           try (
             InputStream inputstream = resource.getInputStream();
             Reader reader = new BufferedReader(new InputStreamReader(inputstream, StandardCharsets.UTF_8))
           ) {
-            JsonObject json = JSONUtils.fromJson(GSON, reader, JsonObject.class);
+            JsonObject json = GsonHelper.fromJson(GSON, reader, JsonObject.class);
             if (json == null) {
               Mantle.logger.error("Couldn't load {} tag list {} from {} in data pack {} as it is empty or null", tagType, tagId, resourcePath, resource.getPackName());
             } else {
               // store by the resource path instead of the ID, thats the one we want at the end
-              foundTags.computeIfAbsent(resourcePath, id -> Builder.create()).deserialize(json, resource.getPackName());
+              foundTags.computeIfAbsent(resourcePath, id -> Builder.create()).deserialize(json, resource.getSourceName());
             }
           } catch (RuntimeException | IOException ex) {
             Mantle.logger.error("Couldn't read {} tag list {} from {} in data pack {}", tagType, tagId, resourcePath, resource.getPackName(), ex);

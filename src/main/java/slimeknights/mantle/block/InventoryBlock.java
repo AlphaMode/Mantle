@@ -1,6 +1,7 @@
 package slimeknights.mantle.block;
 
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -30,22 +31,16 @@ import javax.annotation.Nullable;
  * Base class for blocks with an inventory
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class InventoryBlock extends Block {
+public abstract class InventoryBlock extends Block implements EntityBlock {
 
   protected InventoryBlock(Block.Properties builder) {
     super(builder);
   }
 
-  /* Tile entity */
-
-  // inventories usually need a tileEntity
-  @Override
-  public boolean hasTileEntity(BlockState state) {
-    return true;
-  }
+  /* Block entity */
 
   @Override
-  public abstract BlockEntity createTileEntity(BlockState state, BlockGetter world);
+  public abstract BlockEntity newBlockEntity(BlockPos pos,BlockState state);
 
   /**
    * Called when the block is activated to open the UI. Override to return false for blocks with no inventory

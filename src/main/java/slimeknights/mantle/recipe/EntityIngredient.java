@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import lombok.RequiredArgsConstructor;
+
+import net.minecraft.core.Registry;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.Tag;
@@ -149,7 +151,7 @@ public abstract class EntityIngredient implements Predicate<EntityType<?>> {
     // tag is also a name
     if (json.has("tag")) {
       ResourceLocation name = new ResourceLocation(GsonHelper.getAsString(json, "tag"));
-      Tag<EntityType<?>> tag = SerializationTags.getInstance().getEntityTypes().getTag(name);
+      Tag<EntityType<?>> tag = SerializationTags.getInstance().getOrEmpty(Registry.ENTITY_TYPE_REGISTRY).getTag(name);
       if (tag == null) {
         throw new JsonSyntaxException("Unknown entity type tag " + name);
       } else {
@@ -234,7 +236,7 @@ public abstract class EntityIngredient implements Predicate<EntityType<?>> {
     @Override
     public JsonElement serialize() {
       JsonObject object = new JsonObject();
-      object.addProperty("tag", SerializationTags.getInstance().getEntityTypes().getIdOrThrow(tag).toString());
+      object.addProperty("tag", SerializationTags.getInstance().getOrEmpty(Registry.ENTITY_TYPE_REGISTRY).getId(tag).toString());
       return object;
     }
   }

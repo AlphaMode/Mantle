@@ -12,6 +12,8 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.ChatFormatting;
+
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.client.book.data.element.TextComponentData;
@@ -194,9 +196,9 @@ public class TextComponentDataRenderer {
    * @param scale         the scale to render as
    */
   public static void drawScaledTextComponent(PoseStack matrixStack, Font font, FormattedText textComponent, float x, float y, boolean dropShadow, float scale) {
-    RenderSystem.pushMatrix();
-    RenderSystem.translatef(x, y, 0);
-    RenderSystem.scalef(scale, scale, 1F);
+    matrixStack.pushPose();
+    matrixStack.translate(x, y, 0);
+    matrixStack.scale(scale, scale, 1F);
 
     if (dropShadow) {
       font.drawShadow(matrixStack, Language.getInstance().getVisualOrder(textComponent), 0, 0, 0);
@@ -204,7 +206,7 @@ public class TextComponentDataRenderer {
       font.draw(matrixStack, Language.getInstance().getVisualOrder(textComponent), 0, 0, 0);
     }
 
-    RenderSystem.popMatrix();
+    matrixStack.popPose();
   }
 
   /**
@@ -228,19 +230,19 @@ public class TextComponentDataRenderer {
     float f6 = (float) (endColor >> 8 & 255) / 255.0F;
     float f7 = (float) (endColor & 255) / 255.0F;
     RenderSystem.disableTexture();
-    RenderSystem.disableAlphaTest();
+    //RenderSystem.disableAlphaTest();
     RenderSystem.blendFuncSeparate(770, 771, 1, 0);
-    RenderSystem.shadeModel(7425);
+    //RenderSystem.shadeModel(7425);
     Tesselator tessellator = Tesselator.getInstance();
     BufferBuilder vertexBuffer = tessellator.getBuilder();
-    vertexBuffer.begin(7, DefaultVertexFormat.POSITION_COLOR);
+    vertexBuffer.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
     vertexBuffer.vertex((double) right, (double) top, 0D).color(f1, f2, f3, f).endVertex();
     vertexBuffer.vertex((double) left, (double) top, 0D).color(f1, f2, f3, f).endVertex();
     vertexBuffer.vertex((double) left, (double) bottom, 0D).color(f5, f6, f7, f4).endVertex();
     vertexBuffer.vertex((double) right, (double) bottom, 0D).color(f5, f6, f7, f4).endVertex();
     tessellator.end();
-    RenderSystem.shadeModel(7424);
-    RenderSystem.enableAlphaTest();
+    //RenderSystem.shadeModel(7424);
+    //RenderSystem.enableAlphaTest();
     RenderSystem.enableTexture();
   }
 }

@@ -3,8 +3,7 @@ package slimeknights.mantle.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -12,6 +11,8 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import net.minecraftforge.fluids.FluidAttributes;
@@ -27,9 +28,9 @@ public class FluidRenderer {
   /** Render type used for rendering fluids */
   public static final RenderType RENDER_TYPE = RenderType.create(
       Mantle.modId + ":block_render_type",
-      DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, 7, 256, true, false,
+      DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, VertexFormat.Mode.TRIANGLE_STRIP, 256, true, false,
       RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(InventoryMenu.BLOCK_ATLAS, false, false))
-                      .setShadeModelState(RenderType.SMOOTH_SHADE)
+                      //.setShadeModelState(RenderType.SMOOTH_SHADE)
                       .setLightmapState(RenderType.LIGHTMAP)
                       .setTextureState(RenderType.BLOCK_SHEET_MIPPED)
                       .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
@@ -247,7 +248,7 @@ public class FluidRenderer {
    * @param fluid     Fluid to use in rendering
    * @param light     Light level from TER
    */
-  public static void renderCuboids(MatrixStack matrices, IVertexBuilder buffer, List<FluidCuboid> cubes, FluidStack fluid, int light) {
+  public static void renderCuboids(PoseStack matrices, VertexConsumer buffer, List<FluidCuboid> cubes, FluidStack fluid, int light) {
     if (fluid.isEmpty()) {
       return;
     }
@@ -267,7 +268,7 @@ public class FluidRenderer {
   }
 
   /**
-   * Renders a fluid cuboid with the given offset, used to manually place cuboids from a list for rendering {@link #renderCuboids(MatrixStack, IVertexBuilder, List, FluidStack, int)}
+   * Renders a fluid cuboid with the given offset, used to manually place cuboids from a list for rendering {@link #renderCuboids(PoseStack, VertexConsumer, List, FluidStack, int)}
    * @param matrices  Matrix stack instance
    * @param buffer    Buffer type
    * @param cube      Fluid cuboid
@@ -278,14 +279,14 @@ public class FluidRenderer {
    * @param light     Quad lighting from TER
    * @param isGas     If true, fluid is a gas
    */
-  public static void renderCuboid(MatrixStack matrices, IVertexBuilder buffer, FluidCuboid cube, float yOffset, TextureAtlasSprite still, TextureAtlasSprite flowing, int color, int light, boolean isGas) {
+  public static void renderCuboid(PoseStack matrices, VertexConsumer buffer, FluidCuboid cube, float yOffset, TextureAtlasSprite still, TextureAtlasSprite flowing, int color, int light, boolean isGas) {
     if (yOffset != 0) {
-      matrices.push();
+      matrices.pushPose();
       matrices.translate(0, yOffset, 0);
     }
     renderCuboid(matrices, buffer, cube, still, flowing, cube.getFromScaled(), cube.getToScaled(), color, light, isGas);
     if (yOffset != 0) {
-      matrices.pop();
+      matrices.popPose();
     }
   }
 
@@ -300,7 +301,7 @@ public class FluidRenderer {
    * @param cube      Fluid cuboid instance
    * @param flipGas   If true, flips gas cubes
    */
-  public static void renderScaledCuboid(MatrixStack matrices, IRenderTypeBuffer buffer, FluidCuboid cube, FluidStack fluid, float offset, int capacity, int light, boolean flipGas) {
+  public static void renderScaledCuboid(PoseStack matrices, MultiBufferSource buffer, FluidCuboid cube, FluidStack fluid, float offset, int capacity, int light, boolean flipGas) {
     // nothing to render
     if (fluid.isEmpty() || capacity <= 0) {
       return;
@@ -317,8 +318,8 @@ public class FluidRenderer {
     Vector3f from = cube.getFromScaled();
     Vector3f to = cube.getToScaled();
     // gas renders upside down
-    float minY = from.getY();
-    float maxY = to.getY();
+    float minY = from.y();
+    float maxY = to.y();
     float height = (fluid.getAmount() - offset) / capacity;
     if (isGas && flipGas) {
       from = from.copy();

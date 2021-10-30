@@ -46,10 +46,10 @@ public class WrapperSlot extends Slot {
   }
 
   @Override
-  public ItemStack onTake(Player playerIn, ItemStack stack) {
+  public void onTake(Player playerIn, ItemStack stack) {
     this.parent.onTake(playerIn, stack);
 
-    return stack;
+    set(stack);
   }
 
   @Override

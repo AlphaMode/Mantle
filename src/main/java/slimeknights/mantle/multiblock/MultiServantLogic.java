@@ -25,8 +25,8 @@ public class MultiServantLogic extends MantleTileEntity implements IServantLogic
   Block masterBlock;
   BlockState state;
 
-  public MultiServantLogic(BlockEntityType<?> tileEntityTypeIn) {
-    super(tileEntityTypeIn);
+  public MultiServantLogic(BlockEntityType<?> blockEntityTypeIn, BlockPos pos, BlockState state) {
+    super(blockEntityTypeIn, pos, state);
   }
 
   public boolean canUpdate() {
@@ -137,8 +137,8 @@ public class MultiServantLogic extends MantleTileEntity implements IServantLogic
   }
 
   @Override
-  public void load(BlockState blockState, CompoundTag tags) {
-    super.load(blockState, tags);
+  public void load(CompoundTag tags) {
+    super.load(tags);
     this.readCustomNBT(tags);
   }
 

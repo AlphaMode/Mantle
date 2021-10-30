@@ -49,7 +49,7 @@ public class TileEntityTypeRegistryAdapter extends RegistryAdapter<BlockEntityTy
    * @return  Registry object instance
    */
   @SuppressWarnings("ConstantConditions")
-  public <T extends BlockEntity> BlockEntityType<T> register(Supplier<? extends T> factory, Block block, String name) {
+  public <T extends BlockEntity> BlockEntityType<T> register(BlockEntityType.BlockEntitySupplier<? extends T> factory, Block block, String name) {
     return register(BlockEntityType.Builder.<T>of(factory, block).build(getType(name)), name);
   }
 
@@ -62,7 +62,7 @@ public class TileEntityTypeRegistryAdapter extends RegistryAdapter<BlockEntityTy
    * @return  Tile entity type registry object
    */
   @SuppressWarnings("ConstantConditions")
-  public <T extends BlockEntity> BlockEntityType<T> register(Supplier<? extends T> factory, EnumObject<?, ? extends Block> blocks, String name) {
+  public <T extends BlockEntity> BlockEntityType<T> register(BlockEntityType.BlockEntitySupplier<? extends T> factory, EnumObject<?, ? extends Block> blocks, String name) {
     return register(new BlockEntityType<>(factory, ImmutableSet.copyOf(blocks.values()), getType(name)), name);
   }
 
@@ -75,7 +75,7 @@ public class TileEntityTypeRegistryAdapter extends RegistryAdapter<BlockEntityTy
    * @return  Tile entity type registry object
    */
   @SuppressWarnings("ConstantConditions")
-  public <T extends BlockEntity> BlockEntityType<T> register(Supplier<? extends T> factory, String name, Consumer<Builder<Block>> blockCollector) {
+  public <T extends BlockEntity> BlockEntityType<T> register(BlockEntityType.BlockEntitySupplier<? extends T> factory, String name, Consumer<Builder<Block>> blockCollector) {
     ImmutableSet.Builder<Block> blocks = new ImmutableSet.Builder<>();
     blockCollector.accept(blocks);
     return register(new BlockEntityType<>(factory, blocks.build(), getType(name)), name);

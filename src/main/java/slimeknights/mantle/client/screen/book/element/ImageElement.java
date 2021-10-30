@@ -66,20 +66,20 @@ public class ImageElement extends SizedBookElement {
     float g = ((this.colorMultiplier >> 8) & 0xff) / 255.F;
     float b = (this.colorMultiplier & 0xff) / 255.F;
 
-    RenderSystem.color3f(r, g, b);
+    RenderSystem.setShaderColor(r, g, b, 0F);
 
     if (this.image.item == null) {
-      this.renderEngine.bind(this.image.location);
+      RenderSystem.setShaderTexture(0, this.image.location);
 
       blitRaw(matrixStack, this.x, this.y, this.width, this.height, this.image.u, this.image.u + this.image.uw, this.image.v, this.image.v + this.image.vh, this.image.texWidth, this.image.texHeight);
     }
     else {
-      RenderSystem.pushMatrix();
-      RenderSystem.translatef(this.x, this.y, 0F);
-      RenderSystem.scalef(this.width / 16F, this.height / 16F, 1F);
+      matrixStack.pushPose();
+      matrixStack.translate(this.x, this.y, 0F);
+      matrixStack.scale(this.width / 16F, this.height / 16F, 1F);
       this.itemElement.draw(matrixStack, mouseX, mouseY, partialTicks, fontRenderer);
-      Lighting.turnOff();
-      RenderSystem.popMatrix();
+      Lighting.setupFor3DItems();
+      matrixStack.popPose();
     }
   }
 

@@ -34,7 +34,7 @@ public class ArrowButton extends Button {
   @Override
   public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
     Minecraft minecraft = Minecraft.getInstance();
-    minecraft.getTextureManager().bind(TEX_BOOK);
+    RenderSystem.setShaderTexture(0, TEX_BOOK);
 
     this.isHovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
 
@@ -44,7 +44,7 @@ public class ArrowButton extends Button {
     float g = ((color >> 8) & 0xff) / 255.F;
     float b = (color & 0xff) / 255.F;
 
-    RenderSystem.color3f(r, g, b);
+    RenderSystem.setShaderColor(r, g, b, 0F);
     blit(matrixStack, this.x, this.y, this.width, this.height, this.arrowType.x, this.arrowType.y, this.width, this.height, 512, 512);
     this.renderBg(matrixStack, minecraft, mouseX, mouseY);
   }

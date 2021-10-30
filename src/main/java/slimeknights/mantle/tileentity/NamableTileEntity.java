@@ -2,6 +2,8 @@ package slimeknights.mantle.tileentity;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -21,14 +23,14 @@ public abstract class NamableTileEntity extends MantleTileEntity implements IRen
 	@Getter @Setter
 	private Component customName;
 
-	public NamableTileEntity(BlockEntityType<?> tileEntityTypeIn, Component defaultTitle) {
-		super(tileEntityTypeIn);
+	public NamableTileEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state, Component defaultTitle) {
+		super(tileEntityTypeIn, pos, state);
 		this.defaultName = defaultTitle;
 	}
 
 	@Override
-	public void load(BlockState blockState, CompoundTag tags) {
-		super.load(blockState, tags);
+	public void load(CompoundTag tags) {
+		super.load(tags);
 		if (tags.contains(TAG_CUSTOM_NAME, NBT.TAG_STRING)) {
 			this.customName = Component.Serializer.fromJson(tags.getString(TAG_CUSTOM_NAME));
 		}

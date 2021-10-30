@@ -14,8 +14,8 @@ import javax.annotation.Nullable;
 
 public class MantleTileEntity extends BlockEntity {
 
-  public MantleTileEntity(BlockEntityType<?> tileEntityTypeIn) {
-    super(tileEntityTypeIn);
+  public MantleTileEntity(BlockEntityType<?> blockEntityTypeIn, BlockPos pos, BlockState state) {
+    super(blockEntityTypeIn, pos, state);
   }
 
   public boolean isClient() {
@@ -56,7 +56,7 @@ public class MantleTileEntity extends BlockEntity {
   }
 
   /**
-   * Write to NBT that is synced to the client in {@link #getUpdateTag()} and in {@link #write(CompoundTag)}
+   * Write to NBT that is synced to the client in {@link #getUpdateTag()} and in {@link #writeSynced(CompoundTag)}
    * @param nbt  NBT
    */
   protected void writeSynced(CompoundTag nbt) {}

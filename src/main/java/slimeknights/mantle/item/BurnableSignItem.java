@@ -1,5 +1,8 @@
 package slimeknights.mantle.item;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SignItem;
@@ -14,7 +17,7 @@ public class BurnableSignItem extends SignItem {
   }
 
   @Override
-  public int getBurnTime(ItemStack itemStack) {
+  public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
     return burnTime;
   }
 }

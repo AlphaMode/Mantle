@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import lombok.RequiredArgsConstructor;
+
+import net.minecraft.core.Registry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -79,7 +81,7 @@ public abstract class ItemOutput implements Supplier<ItemStack> {
     JsonObject json = element.getAsJsonObject();
     if (json.has("tag")) {
       String name = GsonHelper.getAsString(json, "tag");
-      Tag<Item> tag = SerializationTags.getInstance().getItems().getTag(new ResourceLocation(name));
+      Tag<Item> tag = SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY).getTag(new ResourceLocation(name));
       if (tag == null) {
         throw new JsonSyntaxException("Unknown tag " + name + " for item output");
       }
@@ -162,7 +164,7 @@ public abstract class ItemOutput implements Supplier<ItemStack> {
     @Override
     public JsonElement serialize() {
       JsonObject json = new JsonObject();
-      json.addProperty("tag", SerializationTags.getInstance().getItems().getIdOrThrow(tag).toString());
+      json.addProperty("tag", SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY).getId(tag).toString());
       if (count != 1) {
         json.addProperty("count", count);
       }

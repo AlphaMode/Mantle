@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -49,10 +50,20 @@ public class TemplateChunkProvider extends ChunkSource {
     return this.chunks.computeIfAbsent(new ChunkPos(chunkX, chunkZ), p -> new EmptyLevelChunk(world, p));
   }
 
+  @Override
+  public void tick(BooleanSupplier p_156184_) {
+
+  }
+
   @Nonnull
   @Override
   public String gatherStats() {
     return "?";
+  }
+
+  @Override
+  public int getLoadedChunksCount() {
+    return chunks.size();
   }
 
   @Nonnull

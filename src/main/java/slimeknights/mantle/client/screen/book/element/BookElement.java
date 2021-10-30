@@ -21,7 +21,6 @@ public abstract class BookElement extends GuiComponent {
   public BookScreen parent;
 
   protected Minecraft mc = Minecraft.getInstance();
-  protected TextureManager renderEngine = this.mc.textureManager;
 
   public int x, y;
 

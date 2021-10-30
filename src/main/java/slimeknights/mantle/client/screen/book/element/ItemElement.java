@@ -88,16 +88,16 @@ public class ItemElement extends SizedBookElement {
       }
     }
 
-    RenderSystem.pushMatrix();
-    RenderSystem.translatef(this.x, this.y, 0);
-    RenderSystem.scalef(this.scale, this.scale, 1.0F);
+    matrixStack.pushPose();
+    matrixStack.translate(this.x, this.y, 0);
+    matrixStack.scale(this.scale, this.scale, 1.0F);
 
     if (this.currentItem < this.itemCycle.size()) {
       this.mc.getItemRenderer().renderAndDecorateItem(this.itemCycle.get(this.currentItem), 0, 0);
     }
 
-    RenderSystem.popMatrix();
-    Lighting.turnOff();
+    matrixStack.popPose();
+    Lighting.setupFor3DItems();
   }
 
   @Override

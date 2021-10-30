@@ -40,20 +40,20 @@ public class BookmarkButton extends Button {
     Minecraft minecraft = Minecraft.getInstance();
     int tex_y = TEX_Y + HEIGHT * this.type;
 
-    minecraft.textureManager.bind(TEX_BOOK);
+    RenderSystem.setShaderTexture(0, TEX_BOOK);
 
     float r = ((this.data.color >> 16) & 0xff) / 255.F;
     float g = ((this.data.color >> 8) & 0xff) / 255.F;
     float b = (this.data.color & 0xff) / 255.F;
 
-    RenderSystem.color3f(r, g, b);
+    RenderSystem.setShaderColor(r, g, b, 0F);
     blit(matrixStack, this.x, this.y, this.width, this.y, TEX_X, tex_y, WIDTH, HEIGHT, 512, 512);
 
     if (this.data.text != null && !this.data.text.isEmpty()) {
       TextDataRenderer.drawScaledString(matrixStack, minecraft.font, this.data.text, this.x + 1, this.y + this.y / 2 - minecraft.font.lineHeight * TEXT_SCALE / 2 + 1, 0xFFFFFFFF, true, TEXT_SCALE);
     }
 
-    RenderSystem.color3f(1F, 1F, 1F);
+    RenderSystem.setShaderColor(1F, 1F, 1F, 0F);
 
     if (this.data.page.equals("ADD")) {
       blit(matrixStack, this.x + this.width / 2 - ADD_W / 2, this.y + this.y / 2 - ADD_H / 2, ADD_X, ADD_Y, ADD_W, ADD_H, 512, 512);

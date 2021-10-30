@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.Capability.IStorage;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -42,16 +41,7 @@ public class OffhandCooldownTracker implements ICapabilityProvider {
   /** Registers the capability and subscribes to event listeners */
   public static void register() {
     // register a bunch of dumb unused things because I need to register one actually useful thing
-    CapabilityManager.INSTANCE.register(OffhandCooldownTracker.class, new IStorage<OffhandCooldownTracker>() {
-      @Nullable
-      @Override
-      public Tag writeNBT(Capability<OffhandCooldownTracker> capability, OffhandCooldownTracker instance, Direction side) {
-        return null;
-      }
-
-      @Override
-      public void readNBT(Capability<OffhandCooldownTracker> capability, OffhandCooldownTracker instance, Direction side, Tag nbt) {}
-    }, () -> new OffhandCooldownTracker(null));
+    CapabilityManager.INSTANCE.register(OffhandCooldownTracker.class);
 
     MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, OffhandCooldownTracker::attachCapability);
   }

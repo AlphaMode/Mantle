@@ -4,39 +4,40 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.command.arguments.ResourceLocationArgument;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ProjectileHelper;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.SpawnEggItem;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionUtils;
-import net.minecraft.potion.Potions;
-import net.minecraft.tags.ITagCollection;
-import net.minecraft.tags.TagCollectionManager;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.RayTraceContext.FluidMode;
-import net.minecraft.util.math.RayTraceResult.Type;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.SerializationTags;
+import net.minecraft.tags.TagCollection;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+
+import com.mojang.math.Vector3d;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.ForgeTagHandler;
 import net.minecraftforge.common.util.LazyOptional;
@@ -77,7 +78,7 @@ public class TagsForCommand {
               // by registry ID
               .then(Commands.literal("id")
                             .then(Commands.argument("type", TagCollectionArgument.collection())
-                                          .then(Commands.argument("name", ResourceLocationArgument.resourceLocation()).suggests(MantleCommand.REGISTRY_VALUES)
+                                          .then(Commands.argument("name", ResourceLocationArgument.id()).suggests(MantleCommand.REGISTRY_VALUES)
                                                         .executes(TagsForCommand::runForId))))
               // held item
               .then(Commands.literal("held")
@@ -103,18 +104,18 @@ public class TagsForCommand {
    * @param <T>         Collection type
    * @return  Number of tags printed
    */
-  private static <T> int printOwningTags(CommandContext<CommandSource> context, ITagCollection<T> collection, ResourceLocation typeName, ResourceLocation name, Object value) {
+  private static <T> int printOwningTags(CommandContext<CommandSourceStack> context, TagCollection<T> collection, ResourceLocation typeName, ResourceLocation name, Object value) {
     // TODO: not sure if there is a better way to do this, it did come out of that registry
-    IFormattableTextComponent output = new TranslationTextComponent("command.mantle.tags_for.success", typeName, name);
-    Collection<ResourceLocation> tags = collection.getOwningTags((T)value);
+    MutableComponent output = new TranslatableComponent("command.mantle.tags_for.success", typeName, name);
+    Collection<ResourceLocation> tags = collection.getMatchingTags((T)value);
     if (tags.isEmpty()) {
-      output.appendString("\n* ").append(NO_TAGS);
+      output.append("\n* ").append(NO_TAGS);
     } else {
       tags.stream()
           .sorted(ResourceLocation::compareNamespaced)
-          .forEach(tag -> output.appendString("\n* " + tag));
+          .forEach(tag -> output.append("\n* " + tag));
     }
-    context.getSource().sendFeedback(output, true);
+    context.getSource().sendSuccess(output, true);
     return tags.size();
   }
 
@@ -122,7 +123,7 @@ public class TagsForCommand {
   /* Standard way: by ID */
 
   /** Run the registry ID subcommand */
-  private static int runForId(CommandContext<CommandSource> context) throws CommandSyntaxException {
+  private static int runForId(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
     TagCollectionArgument.Result result = context.getArgument("type", TagCollectionArgument.Result.class);
     ResourceLocation name = context.getArgument("name", ResourceLocation.class);
 
@@ -141,27 +142,27 @@ public class TagsForCommand {
   /* Held item, can extract some data from the stack */
 
   /** Item tags for held item */
-  private static int heldItem(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    Item item = context.getSource().asPlayer().getHeldItemMainhand().getItem();
-    return printOwningTags(context, TagCollectionManager.getManager().getItemTags(), Registry.ITEM_KEY.getLocation(), Objects.requireNonNull(item.getRegistryName()), item);
+  private static int heldItem(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    Item item = context.getSource().getPlayerOrException().getMainHandItem().getItem();
+    return printOwningTags(context, SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY), Registry.ITEM_REGISTRY.location(), Objects.requireNonNull(item.getRegistryName()), item);
   }
 
   /** Block tags for held item */
-  private static int heldBlock(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    Item item = source.asPlayer().getHeldItemMainhand().getItem();
-    Block block = Block.getBlockFromItem(item);
+  private static int heldBlock(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    Item item = source.getPlayerOrException().getMainHandItem().getItem();
+    Block block = Block.byItem(item);
     if (block != Blocks.AIR) {
-      return printOwningTags(context, TagCollectionManager.getManager().getBlockTags(), Registry.BLOCK_KEY.getLocation(), Objects.requireNonNull(block.getRegistryName()), block);
+      return printOwningTags(context, SerializationTags.getInstance().getOrEmpty(Registry.BLOCK_REGISTRY), Registry.BLOCK_REGISTRY.location(), Objects.requireNonNull(block.getRegistryName()), block);
     }
-    source.sendFeedback(NO_HELD_BLOCK, true);
+    source.sendSuccess(NO_HELD_BLOCK, true);
     return 0;
   }
 
   /** Fluid tags for held item */
-  private static int heldFluid(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    ItemStack stack = source.asPlayer().getHeldItemMainhand();
+  private static int heldFluid(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    ItemStack stack = source.getPlayerOrException().getMainHandItem();
     LazyOptional<IFluidHandlerItem> capability = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY);
     if (capability.isPresent()) {
       IFluidHandler handler = capability.map(h -> (IFluidHandler) h).orElse(EmptyFluidHandler.INSTANCE);
@@ -169,55 +170,55 @@ public class TagsForCommand {
         FluidStack fluidStack = handler.getFluidInTank(0);
         if (!fluidStack.isEmpty()) {
           Fluid fluid = fluidStack.getFluid();
-          return printOwningTags(context, TagCollectionManager.getManager().getFluidTags(), Registry.FLUID_KEY.getLocation(), Objects.requireNonNull(fluid.getRegistryName()), fluid);
+          return printOwningTags(context, SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY), Registry.FLUID_REGISTRY.getLocation(), Objects.requireNonNull(fluid.getRegistryName()), fluid);
         }
       }
     }
-    source.sendFeedback(NO_HELD_FLUID, true);
+    source.sendSuccess(NO_HELD_FLUID, true);
     return 0;
   }
 
   /** Potion tags for held item */
-  private static int heldPotion(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    ItemStack stack = source.asPlayer().getHeldItemMainhand();
-    Potion potion = PotionUtils.getPotionFromItem(stack);
+  private static int heldPotion(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    ItemStack stack = source.getPlayerOrException().getMainHandItem();
+    Potion potion = PotionUtils.getPotion(stack);
     if (potion != Potions.EMPTY) {
-      ResourceLocation registry = Registry.POTION_KEY.getLocation();
+      ResourceLocation registry = Registry.POTION_REGISTRY.location();
       return printOwningTags(context, ForgeTagHandler.getCustomTagTypes().get(registry), registry, Objects.requireNonNull(potion.getRegistryName()), potion);
     }
-    source.sendFeedback(NO_HELD_POTION, true);
+    source.sendSuccess(NO_HELD_POTION, true);
     return 0;
   }
 
   /** Block tags for held item */
-  private static int heldEnchantments(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    ItemStack stack = source.asPlayer().getHeldItemMainhand();
+  private static int heldEnchantments(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    ItemStack stack = source.getPlayerOrException().getMainHandItem();
     Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);
     if (!enchantments.isEmpty()) {
       int totalTags = 0;
-      ResourceLocation registry = Registry.ENCHANTMENT_KEY.getLocation();
-      ITagCollection<?> enchantmentTags = ForgeTagHandler.getCustomTagTypes().get(registry);
+      ResourceLocation registry = Registry.ENCHANTMENT_REGISTRY.location();
+      TagCollection<?> enchantmentTags = ForgeTagHandler.getCustomTagTypes().get(registry);
       // print tags for each contained enchantment
       for (Enchantment enchantment : enchantments.keySet()) {
         totalTags += printOwningTags(context, enchantmentTags, registry, Objects.requireNonNull(enchantment.getRegistryName()), enchantment);
       }
       return totalTags;
     }
-    source.sendFeedback(NO_HELD_ENCHANTMENT, true);
+    source.sendSuccess(NO_HELD_ENCHANTMENT, true);
     return 0;
   }
 
   /** Entity tags for held item */
-  private static int heldEntity(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    ItemStack stack = source.asPlayer().getHeldItemMainhand();
+  private static int heldEntity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    ItemStack stack = source.getPlayerOrException().getMainHandItem();
     if (stack.getItem() instanceof SpawnEggItem) {
       EntityType<?> type = ((SpawnEggItem) stack.getItem()).getType(stack.getTag());
-      return printOwningTags(context, TagCollectionManager.getManager().getEntityTypeTags(), Registry.ENTITY_TYPE_KEY.getLocation(), Objects.requireNonNull(type.getRegistryName()), type);
+      return printOwningTags(context, SerializationTags.getInstance().getOrEmpty(Registry.ENTITY_TYPE_REGISTRY), Registry.ENTITY_TYPE_REGISTRY.location(), Objects.requireNonNull(type.getRegistryName()), type);
     }
-    source.sendFeedback(NO_HELD_ENTITY, true);
+    source.sendSuccess(NO_HELD_ENTITY, true);
     return 0;
   }
 
@@ -230,16 +231,16 @@ public class TagsForCommand {
    * @return  Tags for the looked at block or entity
    * @throws CommandSyntaxException  For command errors
    */
-  private static int targetedTileEntity(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    PlayerEntity player = source.asPlayer();
-    World world = source.getWorld();
-    BlockRayTraceResult blockTrace = Item.rayTrace(world, player, FluidMode.NONE);
-    if (blockTrace.getType() == Type.BLOCK) {
-      TileEntity te = world.getTileEntity(blockTrace.getPos());
-      if (te != null) {
-        TileEntityType<?> type = te.getType();
-        ResourceLocation registry = Registry.BLOCK_ENTITY_TYPE_KEY.getLocation();
+  private static int targetedTileEntity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    Player player = source.getPlayerOrException();
+    Level world = source.getLevel();
+    BlockHitResult blockTrace = Item.getPlayerPOVHitResult(world, player, ClipContext.Fluid.NONE);
+    if (blockTrace.getType() == HitResult.Type.BLOCK) {
+      BlockEntity be = world.getBlockEntity(blockTrace.getBlockPos());
+      if (be != null) {
+        BlockEntityType<?> type = be.getType();
+        ResourceLocation registry = Registry.BLOCK_ENTITY_TYPE_REGISTRY.location();
         return printOwningTags(context, ForgeTagHandler.getCustomTagTypes().get(registry), registry, Objects.requireNonNull(type.getRegistryName()), type);
       }
     }
@@ -254,21 +255,21 @@ public class TagsForCommand {
    * @return  Tags for the looked at block or entity
    * @throws CommandSyntaxException  For command errors
    */
-  private static int targetedEntity(CommandContext<CommandSource> context) throws CommandSyntaxException {
-    CommandSource source = context.getSource();
-    PlayerEntity player = source.asPlayer();
-    Vector3d start = player.getEyePosition(1F);
-    Vector3d look = player.getLookVec();
+  private static int targetedEntity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    CommandSourceStack source = context.getSource();
+    Player player = source.getPlayerOrException();
+    Vec3 start = player.getEyePosition(1F);
+    Vec3 look = player.getLookAngle();
     double range = Objects.requireNonNull(player.getAttribute(ForgeMod.REACH_DISTANCE.get())).getValue();
-    Vector3d direction = start.add(look.x * range, look.y * range, look.z * range);
-    AxisAlignedBB bb = player.getBoundingBox().expand(look.x * range, look.y * range, look.z * range).expand(1, 1, 1);
+    Vec3 direction = start.add(look.x * range, look.y * range, look.z * range);
+    AABB bb = player.getBoundingBox().expand(look.x * range, look.y * range, look.z * range).expand(1, 1, 1);
     EntityRayTraceResult entityTrace = ProjectileHelper.rayTraceEntities(source.getWorld(), player, start, direction, bb, e -> true);
     if (entityTrace != null) {
       EntityType<?> target = entityTrace.getEntity().getType();
       return printOwningTags(context, TagCollectionManager.getManager().getEntityTypeTags(), Registry.ENTITY_TYPE_KEY.getLocation(), Objects.requireNonNull(target.getRegistryName()), target);
     }
     // failed
-    source.sendFeedback(NO_TARGETED_ENTITY, true);
+    source.sendSuccess(NO_TARGETED_ENTITY, true);
     return 0;
   }
 }

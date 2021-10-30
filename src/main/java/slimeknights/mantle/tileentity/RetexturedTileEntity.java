@@ -1,5 +1,6 @@
 package slimeknights.mantle.tileentity;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -14,8 +15,8 @@ public class RetexturedTileEntity extends MantleTileEntity implements IRetexture
 
   /** Lazy value of model data as it will not change after first fetch */
   private final LazyLoadedValue<IModelData> data = new LazyLoadedValue<>(this::getRetexturedModelData);
-  public RetexturedTileEntity(BlockEntityType<?> type) {
-    super(type);
+  public RetexturedTileEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+    super(type, pos, state);
   }
 
   @Override
@@ -37,7 +38,7 @@ public class RetexturedTileEntity extends MantleTileEntity implements IRetexture
     if (!oldName.equals(newName) && level != null && level.isClientSide) {
       data.get().setData(RetexturedHelper.BLOCK_PROPERTY, getTexture());
       requestModelDataUpdate();
-      level.sendBlockUpdated(worldPosition, blockState, blockState, 0);
+      level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 0);
     }
   }
 }

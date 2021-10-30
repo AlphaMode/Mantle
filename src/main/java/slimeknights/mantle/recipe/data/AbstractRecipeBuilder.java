@@ -9,7 +9,6 @@ import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;

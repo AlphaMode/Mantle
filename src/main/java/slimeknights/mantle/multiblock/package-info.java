@@ -3,6 +3,6 @@
 @Deprecated
 package slimeknights.mantle.multiblock;
 
-import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;

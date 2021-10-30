@@ -100,7 +100,7 @@ public class StructureElement extends SizedBookElement {
             BlockPos pos = new BlockPos(l, h, w);
             BlockState state = this.structureWorld.getBlockState(pos);
 
-            if (!state.isAir(this.structureWorld, pos)) {
+            if (!state.isAir()) {
               transform.pushPose();
               transform.translate(l, h, w);
 
@@ -117,9 +117,9 @@ public class StructureElement extends SizedBookElement {
               if (te != null)
                 modelData = te.getModelData();
 
-              RenderSystem.disableLighting();
+              //RenderSystem.disableLighting();
 
-              blockRender.renderBlock(state, transform, buffer, 0xf000f0, overlay, modelData);
+              blockRender.renderSingleBlock(state, transform, buffer, 0xf000f0, overlay, modelData);
               transform.popPose();
             }
           }

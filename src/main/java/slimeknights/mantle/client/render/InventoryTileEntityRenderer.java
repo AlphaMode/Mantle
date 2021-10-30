@@ -13,11 +13,7 @@ import slimeknights.mantle.client.model.util.ModelHelper;
 
 import java.util.List;
 
-public class InventoryTileEntityRenderer<T extends BlockEntity & Container> extends BlockEntityRenderer<T> {
-
-  public InventoryTileEntityRenderer(BlockEntityRenderDispatcher rendererDispatcherIn) {
-    super(rendererDispatcherIn);
-  }
+public class InventoryTileEntityRenderer<T extends BlockEntity & Container> implements BlockEntityRenderer<T> {
 
   @Override
   public void render(T inventory, float partialTicks, PoseStack matrices, MultiBufferSource buffer, int light, int combinedOverlayIn) {
@@ -33,12 +29,12 @@ public class InventoryTileEntityRenderer<T extends BlockEntity & Container> exte
       // render items
       List<ModelItem> modelItems = model.getItems();
       for (int i = 0; i < modelItems.size(); i++) {
-        RenderingHelper.renderItem(matrices, buffer, inventory.getStackInSlot(i), modelItems.get(i), light);
+        RenderingHelper.renderItem(matrices, buffer, inventory.getItem(i), modelItems.get(i), light);
       }
 
       // pop back rotation
       if (isRotated) {
-        matrices.pop();
+        matrices.popPose();
       }
     }
   }

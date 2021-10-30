@@ -28,7 +28,7 @@ public abstract class LecternBookItem extends TooltipItem implements ILecternBoo
     BlockPos pos = context.getClickedPos();
     BlockState state = world.getBlockState(pos);
     if (state.is(Blocks.LECTERN)) {
-      if (LecternBlock.tryPlaceBook(world, pos, state, context.getItemInHand())) {
+      if (LecternBlock.tryPlaceBook(context.getPlayer(), world, pos, state, context.getItemInHand())) {
         return InteractionResult.sidedSuccess(world.isClientSide);
       }
     }

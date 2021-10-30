@@ -1,5 +1,6 @@
 package slimeknights.mantle.recipe;
 
+import net.minecraft.core.Registry;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.item.Item;
 import net.minecraft.tags.Tag;
@@ -32,8 +33,8 @@ public class TagPreference<T extends IForgeRegistryEntry<T>> {
   /** Map of each tag type to the preference instance for that type */
   private static final Map<Class<?>, TagPreference<?>> PREFERENCE_MAP = new IdentityHashMap<>();
   // cached tag supplier lambdas
-  private static final Supplier<TagCollection<Item>> ITEM_TAG_COLLECTION_SUPPLIER = () -> SerializationTags.getInstance().getItems();
-  private static final Supplier<TagCollection<Fluid>> FLUID_TAG_COLLECTION_SUPPLIER = () -> SerializationTags.getInstance().getFluids();
+  private static final Supplier<TagCollection<Item>> ITEM_TAG_COLLECTION_SUPPLIER = () -> SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY);
+  private static final Supplier<TagCollection<Fluid>> FLUID_TAG_COLLECTION_SUPPLIER = () -> SerializationTags.getInstance().getOrEmpty(Registry.FLUID_REGISTRY);
 
   /** Comparator to decide which registry entry is preferred */
   private static final Comparator<IForgeRegistryEntry<?>> ENTRY_COMPARATOR = (a, b) -> {
@@ -95,7 +96,7 @@ public class TagPreference<T extends IForgeRegistryEntry<T>> {
    * Clears the tag cache from the event
    * @param event  Tag event
    */
-  private void clearCache(TagsUpdatedEvent.VanillaTagTypes event) {
+  private void clearCache(TagsUpdatedEvent event) {
     preferenceCache.clear();
   }
 
@@ -128,7 +129,7 @@ public class TagPreference<T extends IForgeRegistryEntry<T>> {
   public Optional<T> getPreference(Tag<T> tag) {
     // fetch cached value if we have one
     try {
-      ResourceLocation tagName = collection.get().getIdOrThrow(tag);
+      ResourceLocation tagName = collection.get().getId(tag);
       return preferenceCache.computeIfAbsent(tagName, name -> getUncachedPreference(tag));
     } catch (Exception e) {
       Mantle.logger.warn("Attempting to get tag preference for unregistered tag {}", tag, e);

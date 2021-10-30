@@ -7,6 +7,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.entity.LevelEntityGetter;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.util.profiling.InactiveProfiler;
@@ -64,6 +66,11 @@ public class TemplateWorld extends Level {
   public void playSound(@Nullable Player playerIn, @Nonnull Entity entityIn, @Nonnull SoundEvent eventIn, @Nonnull SoundSource categoryIn, float volume, float pitch) {
   }
 
+  @Override
+  public String gatherChunkSourceStats() {
+    return null;
+  }
+
   @Nullable
   @Override
   public Entity getEntity(int id) {
@@ -77,8 +84,8 @@ public class TemplateWorld extends Level {
   }
 
   @Override
-  public void setMapData(@Nonnull MapItemSavedData mapDataIn) {
-    this.maps.put(mapDataIn.getId(), mapDataIn);
+  public void setMapData(String id, @Nonnull MapItemSavedData mapDataIn) {
+    this.maps.put(id, mapDataIn);
   }
 
   @Override
@@ -108,6 +115,11 @@ public class TemplateWorld extends Level {
     return TagContainer.EMPTY;
   }
 
+  @Override
+  protected LevelEntityGetter<Entity> getEntities() {
+    return null;
+  }
+
   @Nonnull
   @Override
   public TickList<Block> getBlockTicks() {
@@ -128,6 +140,11 @@ public class TemplateWorld extends Level {
 
   @Override
   public void levelEvent(@Nullable Player player, int type, @Nonnull BlockPos pos, int data) {
+  }
+
+  @Override
+  public void gameEvent(@Nullable Entity p_151549_, GameEvent p_151550_, BlockPos p_151551_) {
+
   }
 
   @Nonnull

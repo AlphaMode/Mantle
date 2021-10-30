@@ -1,5 +1,6 @@
 package slimeknights.mantle.tileentity;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.player.Player;
@@ -40,15 +41,15 @@ public abstract class InventoryTileEntity extends NamableTileEntity implements C
   /**
    * @param name Localization String for the inventory title. Can be overridden through setCustomName
    */
-  public InventoryTileEntity(BlockEntityType<?> tileEntityTypeIn, Component name, int inventorySize) {
-    this(tileEntityTypeIn, name, inventorySize, 64);
+  public InventoryTileEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state, Component name, int inventorySize) {
+    this(tileEntityTypeIn, pos, state, name, inventorySize, 64);
   }
 
   /**
    * @param name Localization String for the inventory title. Can be overridden through setCustomName
    */
-  public InventoryTileEntity(BlockEntityType<?> tileEntityTypeIn, Component name, int inventorySize, int maxStackSize) {
-    super(tileEntityTypeIn, name);
+  public InventoryTileEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state, Component name, int inventorySize, int maxStackSize) {
+    super(tileEntityTypeIn, pos, state, name);
     this.inventory = NonNullList.withSize(inventorySize, ItemStack.EMPTY);
     this.stackSizeLimit = maxStackSize;
     this.itemHandler = new InvWrapper(this);
@@ -65,7 +66,7 @@ public abstract class InventoryTileEntity extends NamableTileEntity implements C
   }
 
   @Override
-  protected void invalidateCaps() {
+  public void invalidateCaps() {
     super.invalidateCaps();
     this.itemHandlerCap.invalidate();
   }
@@ -215,8 +216,8 @@ public abstract class InventoryTileEntity extends NamableTileEntity implements C
 
   /* NBT */
   @Override
-  public void load(BlockState blockState, CompoundTag tags) {
-    super.load(blockState, tags);
+  public void load(CompoundTag tags) {
+    super.load(tags);
     this.resizeInternal(tags.getInt(TAG_INVENTORY_SIZE));
     this.readInventoryFromNBT(tags);
     this.inventoryTitle = getName();

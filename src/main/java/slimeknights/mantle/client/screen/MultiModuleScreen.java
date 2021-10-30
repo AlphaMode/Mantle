@@ -68,16 +68,6 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   }
 
   @Override
-  public void init(Minecraft mc, int width, int height) {
-    super.init(mc, width, height);
-
-    for (ModuleScreen<?,?> module : this.modules) {
-      module.init(mc, width, height);
-      this.updateSubmodule(module);
-    }
-  }
-
-  @Override
   protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
     for (ModuleScreen<?,?> module : this.modules) {
       module.handleDrawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
@@ -108,8 +98,8 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   }
 
   protected void drawBackground(PoseStack matrixStack, ResourceLocation background) {
-    RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-    this.minecraft.getTextureManager().bind(background);
+    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    RenderSystem.setShaderTexture(0, background);
     this.blit(matrixStack, this.cornerX, this.cornerY, 0, 0, this.realWidth, this.realHeight);
   }
 
@@ -119,7 +109,7 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
 
   protected void drawPlayerInventoryName(PoseStack matrixStack) {
     assert Minecraft.getInstance().player != null;
-    Component localizedName = Minecraft.getInstance().player.inventory.getDisplayName();
+    Component localizedName = Minecraft.getInstance().player.getInventory().getDisplayName();
     this.font.draw(matrixStack, localizedName.getVisualOrderText(), 8, this.imageHeight - 96 + 2, 0x404040);
   }
 
