@@ -1,18 +1,18 @@
 package slimeknights.mantle.client.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 // a sub-gui. Mostly the same as a separate ContainerScreen, but doesn't do the calls that affect the game as if this were the only gui
 @OnlyIn(Dist.CLIENT)
-public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends Container> extends ContainerScreen<C> {
+public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends AbstractContainerMenu> extends AbstractContainerScreen<C> {
 
   protected final P parent;
 
@@ -24,7 +24,7 @@ public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends Con
   public int yOffset = 0;
   public int xOffset = 0;
 
-  public ModuleScreen(P parent, C container, PlayerInventory playerInventory, ITextComponent title, boolean right, boolean bottom) {
+  public ModuleScreen(P parent, C container, Inventory playerInventory, Component title, boolean right, boolean bottom) {
     super(container, playerInventory, title);
 
     this.parent = parent;
@@ -33,38 +33,38 @@ public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends Con
   }
 
   public int guiRight() {
-    return this.guiLeft + this.xSize;
+    return this.leftPos + this.imageWidth;
   }
 
   public int guiBottom() {
-    return this.guiTop + this.ySize;
+    return this.topPos + this.imageHeight;
   }
 
-  public Rectangle2d getArea() {
-    return new Rectangle2d(this.guiLeft, this.guiTop, this.xSize, this.ySize);
+  public Rect2i getArea() {
+    return new Rect2i(this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
   }
 
   @Override
   public void init() {
-    this.guiLeft = (this.width - this.xSize) / 2;
-    this.guiTop = (this.height - this.ySize) / 2;
+    this.leftPos = (this.width - this.imageWidth) / 2;
+    this.topPos = (this.height - this.imageHeight) / 2;
   }
 
   public void updatePosition(int parentX, int parentY, int parentSizeX, int parentSizeY) {
     if (this.right) {
-      this.guiLeft = parentX + parentSizeX;
+      this.leftPos = parentX + parentSizeX;
     } else {
-      this.guiLeft = parentX - this.xSize;
+      this.leftPos = parentX - this.imageWidth;
     }
 
     if (this.bottom) {
-      this.guiTop = parentY + parentSizeY - this.ySize;
+      this.topPos = parentY + parentSizeY - this.imageHeight;
     } else {
-      this.guiTop = parentY;
+      this.topPos = parentY;
     }
 
-    this.guiLeft += this.xOffset;
-    this.guiTop += this.yOffset;
+    this.leftPos += this.xOffset;
+    this.topPos += this.yOffset;
   }
 
   public boolean shouldDrawSlot(Slot slot) {
@@ -72,12 +72,12 @@ public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends Con
   }
 
   public boolean isMouseInModule(int mouseX, int mouseY) {
-    return mouseX >= this.guiLeft && mouseX < this.guiRight() && mouseY >= this.guiTop && mouseY < this.guiBottom();
+    return mouseX >= this.leftPos && mouseX < this.guiRight() && mouseY >= this.topPos && mouseY < this.guiBottom();
   }
 
   public boolean isMouseOverFullSlot(double mouseX, double mouseY) {
-    for (Slot slot : this.container.inventorySlots) {
-      if (this.parent.isSlotSelected(slot, mouseX, mouseY) && slot.getHasStack()) {
+    for (Slot slot : this.menu.slots) {
+      if (this.parent.isHovering(slot, mouseX, mouseY) && slot.hasItem()) {
         return true;
       }
     }
@@ -87,22 +87,22 @@ public abstract class ModuleScreen<P extends MultiModuleScreen<?>, C extends Con
   /**
    * Callback to draw background elements
    */
-  public void handleDrawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-    this.drawGuiContainerBackgroundLayer(matrixStack,partialTicks, mouseX, mouseY);
+  public void handleDrawGuiContainerBackgroundLayer(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    this.renderBg(matrixStack,partialTicks, mouseX, mouseY);
   }
 
   /**
    * Callback to draw foreground elements
    */
-  public void handleDrawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-    this.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
+  public void handleDrawGuiContainerForegroundLayer(PoseStack matrixStack, int mouseX, int mouseY) {
+    this.renderLabels(matrixStack, mouseX, mouseY);
   }
 
   /**
    * Callback to draw hovering tooltips
    */
-  public void handleRenderHoveredTooltip(MatrixStack matrixStack, int mouseX, int mouseY) {
-    this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+  public void handleRenderHoveredTooltip(PoseStack matrixStack, int mouseX, int mouseY) {
+    this.renderTooltip(matrixStack, mouseX, mouseY);
   }
 
   /**

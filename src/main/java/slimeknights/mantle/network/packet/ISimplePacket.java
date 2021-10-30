@@ -1,7 +1,7 @@
 package slimeknights.mantle.network.packet;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.fmllegacy.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
@@ -13,7 +13,7 @@ public interface ISimplePacket {
    * Encodes a packet for the buffer
    * @param buf  Buffer instance
    */
-  void encode(PacketBuffer buf);
+  void encode(FriendlyByteBuf buf);
 
   /**
    * Handles receiving the packet

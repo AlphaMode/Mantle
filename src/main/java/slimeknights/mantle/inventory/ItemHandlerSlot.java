@@ -1,6 +1,6 @@
 package slimeknights.mantle.inventory;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -11,7 +11,7 @@ public class ItemHandlerSlot extends SlotItemHandler {
 	}
 
 	@Override
-	public int getItemStackLimit(ItemStack stack) {
+	public int getMaxStackSize(ItemStack stack) {
 		return getItemHandler().getSlotLimit(getSlotIndex());
 	}
 }

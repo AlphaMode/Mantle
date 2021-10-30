@@ -1,16 +1,16 @@
 package slimeknights.mantle.client.screen;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.renderer.Rectangle2d;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import slimeknights.mantle.inventory.MultiModuleContainer;
 import slimeknights.mantle.inventory.WrapperSlot;
 
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extends ContainerScreen<CONTAINER> {
+public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extends AbstractContainerScreen<CONTAINER> {
 
   protected List<ModuleScreen<?,?>> modules = Lists.newArrayList();
 
@@ -27,7 +27,7 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   public int realWidth;
   public int realHeight;
 
-  public MultiModuleScreen(CONTAINER container, PlayerInventory playerInventory, ITextComponent title) {
+  public MultiModuleScreen(CONTAINER container, Inventory playerInventory, Component title) {
     super(container, playerInventory, title);
 
     this.realWidth = -1;
@@ -39,8 +39,8 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
     this.modules.add(module);
   }
 
-  public List<Rectangle2d> getModuleAreas() {
-    List<Rectangle2d> areas = new ArrayList<>(this.modules.size());
+  public List<Rect2i> getModuleAreas() {
+    List<Rect2i> areas = new ArrayList<>(this.modules.size());
     for (ModuleScreen<?,?> module : this.modules) {
       areas.add(module.getArea());
     }
@@ -51,16 +51,16 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   public void init() {
     if (this.realWidth > -1) {
       // has to be reset before calling initGui so the position is getting retained
-      this.xSize = this.realWidth;
-      this.ySize = this.realHeight;
+      this.imageWidth = this.realWidth;
+      this.imageHeight = this.realHeight;
     }
 
     super.init();
 
-    this.cornerX = this.guiLeft;
-    this.cornerY = this.guiTop;
-    this.realWidth = this.xSize;
-    this.realHeight = this.ySize;
+    this.cornerX = this.leftPos;
+    this.cornerY = this.topPos;
+    this.realWidth = this.imageWidth;
+    this.realHeight = this.imageHeight;
 
     for (ModuleScreen<?,?> module : this.modules) {
       this.updateSubmodule(module);
@@ -78,49 +78,49 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   }
 
   @Override
-  protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+  protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
     for (ModuleScreen<?,?> module : this.modules) {
       module.handleDrawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
     }
   }
 
   @Override
-  protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+  protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
     this.drawContainerName(matrixStack);
     this.drawPlayerInventoryName(matrixStack);
 
     for (ModuleScreen<?,?> module : this.modules) {
       // set correct state for the module
-      matrixStack.push();
-      matrixStack.translate(module.guiLeft - this.guiLeft, module.guiTop - this.guiTop, 0.0F);
+      matrixStack.pushPose();
+      matrixStack.translate(module.leftPos - this.leftPos, module.topPos - this.topPos, 0.0F);
       module.handleDrawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
-      matrixStack.pop();
+      matrixStack.popPose();
     }
   }
 
   @Override
-  protected void renderHoveredTooltip(MatrixStack matrixStack, int mouseX, int mouseY) {
-    super.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+  protected void renderTooltip(PoseStack matrixStack, int mouseX, int mouseY) {
+    super.renderTooltip(matrixStack, mouseX, mouseY);
 
     for (ModuleScreen<?,?> module : this.modules) {
       module.handleRenderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
   }
 
-  protected void drawBackground(MatrixStack matrixStack, ResourceLocation background) {
+  protected void drawBackground(PoseStack matrixStack, ResourceLocation background) {
     RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-    this.minecraft.getTextureManager().bindTexture(background);
+    this.minecraft.getTextureManager().bind(background);
     this.blit(matrixStack, this.cornerX, this.cornerY, 0, 0, this.realWidth, this.realHeight);
   }
 
-  protected void drawContainerName(MatrixStack matrixStack) {
-    this.font.func_238422_b_(matrixStack, this.getTitle().func_241878_f(), 8, 6, 0x404040);
+  protected void drawContainerName(PoseStack matrixStack) {
+    this.font.draw(matrixStack, this.getTitle().getVisualOrderText(), 8, 6, 0x404040);
   }
 
-  protected void drawPlayerInventoryName(MatrixStack matrixStack) {
+  protected void drawPlayerInventoryName(PoseStack matrixStack) {
     assert Minecraft.getInstance().player != null;
-    ITextComponent localizedName = Minecraft.getInstance().player.inventory.getDisplayName();
-    this.font.func_238422_b_(matrixStack, localizedName.func_241878_f(), 8, this.ySize - 96 + 2, 0x404040);
+    Component localizedName = Minecraft.getInstance().player.inventory.getDisplayName();
+    this.font.draw(matrixStack, localizedName.getVisualOrderText(), 8, this.imageHeight - 96 + 2, 0x404040);
   }
 
   @Override
@@ -134,28 +134,28 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   }
 
   @Override
-  public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+  public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
     this.renderBackground(matrixStack);
-    int oldX = this.guiLeft;
-    int oldY = this.guiTop;
-    int oldW = this.xSize;
-    int oldH = this.ySize;
+    int oldX = this.leftPos;
+    int oldY = this.topPos;
+    int oldW = this.imageWidth;
+    int oldH = this.imageHeight;
 
-    this.guiLeft = this.cornerX;
-    this.guiTop = this.cornerY;
-    this.xSize = this.realWidth;
-    this.ySize = this.realHeight;
+    this.leftPos = this.cornerX;
+    this.topPos = this.cornerY;
+    this.imageWidth = this.realWidth;
+    this.imageHeight = this.realHeight;
     super.render(matrixStack, mouseX, mouseY, partialTicks);
-    this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
-    this.guiLeft = oldX;
-    this.guiTop = oldY;
-    this.xSize = oldW;
-    this.ySize = oldH;
+    this.renderTooltip(matrixStack, mouseX, mouseY);
+    this.leftPos = oldX;
+    this.topPos = oldY;
+    this.imageWidth = oldW;
+    this.imageHeight = oldH;
   }
 
   // needed to get the correct slot on clicking
   @Override
-  protected boolean isPointInRegion(int left, int top, int right, int bottom, double pointX, double pointY) {
+  protected boolean isHovering(int left, int top, int right, int bottom, double pointX, double pointY) {
     pointX -= this.cornerX;
     pointY -= this.cornerY;
     return pointX >= left - 1 && pointX < left + right + 1 && pointY >= top - 1 && pointY < top + bottom + 1;
@@ -164,28 +164,28 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   protected void updateSubmodule(ModuleScreen<?,?> module) {
     module.updatePosition(this.cornerX, this.cornerY, this.realWidth, this.realHeight);
 
-    if (module.guiLeft < this.guiLeft) {
-      this.xSize += this.guiLeft - module.guiLeft;
-      this.guiLeft = module.guiLeft;
+    if (module.leftPos < this.leftPos) {
+      this.imageWidth += this.leftPos - module.leftPos;
+      this.leftPos = module.leftPos;
     }
 
-    if (module.guiTop < this.guiTop) {
-      this.ySize += this.guiTop - module.guiTop;
-      this.guiTop = module.guiTop;
+    if (module.topPos < this.topPos) {
+      this.imageHeight += this.topPos - module.topPos;
+      this.topPos = module.topPos;
     }
 
-    if (module.guiRight() > this.guiLeft + this.xSize) {
-      this.xSize = module.guiRight() - this.guiLeft;
+    if (module.guiRight() > this.leftPos + this.imageWidth) {
+      this.imageWidth = module.guiRight() - this.leftPos;
     }
 
-    if (module.guiBottom() > this.guiTop + this.ySize) {
-      this.ySize = module.guiBottom() - this.guiTop;
+    if (module.guiBottom() > this.topPos + this.imageHeight) {
+      this.imageHeight = module.guiBottom() - this.topPos;
     }
   }
 
   @Override
-  public void moveItems(MatrixStack matrixStack, Slot slotIn) {
-    ModuleScreen<?,?> module = this.getModuleForSlot(slotIn.slotNumber);
+  public void renderSlot(PoseStack matrixStack, Slot slotIn) {
+    ModuleScreen<?,?> module = this.getModuleForSlot(slotIn.index);
 
     if (module != null) {
       Slot slot = slotIn;
@@ -201,16 +201,16 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
 
     // update slot positions
     if (slotIn instanceof WrapperSlot) {
-      slotIn.xPos = ((WrapperSlot) slotIn).parent.xPos;
-      slotIn.yPos = ((WrapperSlot) slotIn).parent.yPos;
+      slotIn.x = ((WrapperSlot) slotIn).parent.x;
+      slotIn.y = ((WrapperSlot) slotIn).parent.y;
     }
 
-    super.moveItems(matrixStack, slotIn);
+    super.renderSlot(matrixStack, slotIn);
   }
 
   @Override
-  public boolean isSlotSelected(Slot slotIn, double mouseX, double mouseY) {
-    ModuleScreen<?,?> module = this.getModuleForSlot(slotIn.slotNumber);
+  public boolean isHovering(Slot slotIn, double mouseX, double mouseY) {
+    ModuleScreen<?,?> module = this.getModuleForSlot(slotIn.index);
 
     // mouse inside the module of the slot?
     if (module != null) {
@@ -225,7 +225,7 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
       }
     }
 
-    return super.isSlotSelected(slotIn, mouseX, mouseY);
+    return super.isHovering(slotIn, mouseX, mouseY);
   }
 
   @Override
@@ -283,7 +283,7 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   @Nullable
   protected ModuleScreen<?,?> getModuleForPoint(double x, double y) {
     for (ModuleScreen<?,?> module : this.modules) {
-      if (this.isPointInRegion(module.guiLeft, module.guiTop, module.guiRight(), module.guiBottom(), x + this.cornerX, y + this.cornerY)) {
+      if (this.isHovering(module.leftPos, module.topPos, module.guiRight(), module.guiBottom(), x + this.cornerX, y + this.cornerY)) {
         return module;
       }
     }
@@ -293,13 +293,13 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
 
   @Nullable
   protected ModuleScreen<?,?> getModuleForSlot(int slotNumber) {
-    return this.getModuleForContainer(this.getContainer().getSlotContainer(slotNumber));
+    return this.getModuleForContainer(this.getMenu().getSlotContainer(slotNumber));
   }
 
   @Nullable
-  protected ModuleScreen<?,?> getModuleForContainer(Container container) {
+  protected ModuleScreen<?,?> getModuleForContainer(AbstractContainerMenu container) {
     for (ModuleScreen<?,?> module : this.modules) {
-      if (module.getContainer() == container) {
+      if (module.getMenu() == container) {
         return module;
       }
     }
@@ -308,7 +308,7 @@ public class MultiModuleScreen<CONTAINER extends MultiModuleContainer<?>> extend
   }
 
   @Override
-  public CONTAINER getContainer() {
-    return this.container;
+  public CONTAINER getMenu() {
+    return this.menu;
   }
 }

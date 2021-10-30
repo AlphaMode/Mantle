@@ -2,19 +2,19 @@ package slimeknights.mantle.recipe.crafting;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.ICraftingRecipe;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.item.crafting.ShapedRecipe;
-import net.minecraft.item.crafting.ShapelessRecipe;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import slimeknights.mantle.recipe.MantleRecipeSerializers;
 import slimeknights.mantle.util.JsonHelper;
 
@@ -27,7 +27,7 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
 
   /** Recipes to skip if they match */
   private final List<ResourceLocation> alternatives;
-  private List<ICraftingRecipe> alternativeCache;
+  private List<CraftingRecipe> alternativeCache;
 
   /**
    * Main constructor, creates a recipe from all parameters
@@ -50,11 +50,11 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
    * @param alternatives  List of recipe names to fail this match if they match
    */
   public ShapedFallbackRecipe(ShapedRecipe base, List<ResourceLocation> alternatives) {
-    this(base.getId(), base.getGroup(), base.getWidth(), base.getHeight(), base.getIngredients(), base.getRecipeOutput(), alternatives);
+    this(base.getId(), base.getGroup(), base.getWidth(), base.getHeight(), base.getIngredients(), base.getResultItem(), alternatives);
   }
 
   @Override
-  public boolean matches(CraftingInventory inv, World world) {
+  public boolean matches(CraftingContainer inv, Level world) {
     // if this recipe does not match, fail it
     if (!super.matches(inv, world)) {
       return false;
@@ -65,7 +65,7 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
     if (alternativeCache == null) {
       RecipeManager manager = world.getRecipeManager();
       alternativeCache = alternatives.stream()
-                                     .map(manager::getRecipe)
+                                     .map(manager::byKey)
                                      .filter(Optional::isPresent)
                                      .map(Optional::get)
                                      .filter(recipe -> {
@@ -73,28 +73,28 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
                                        Class<?> clazz = recipe.getClass();
                                        return clazz == ShapedRecipe.class || clazz == ShapelessRecipe.class;
                                      })
-                                     .map(recipe -> (ICraftingRecipe) recipe).collect(Collectors.toList());
+                                     .map(recipe -> (CraftingRecipe) recipe).collect(Collectors.toList());
     }
     // fail if any alterntaive matches
     return this.alternativeCache.stream().noneMatch(recipe -> recipe.matches(inv, world));
   }
 
   @Override
-  public IRecipeSerializer<?> getSerializer() {
+  public RecipeSerializer<?> getSerializer() {
     return MantleRecipeSerializers.CRAFTING_SHAPED_FALLBACK;
   }
 
   public static class Serializer extends ShapedRecipe.Serializer {
     @Override
-    public ShapedFallbackRecipe read(ResourceLocation id, JsonObject json) {
-      ShapedRecipe base = super.read(id, json);
-      List<ResourceLocation> alternatives = JsonHelper.parseList(json, "alternatives", (element, name) -> new ResourceLocation(JSONUtils.getString(element, name)));
+    public ShapedFallbackRecipe fromJson(ResourceLocation id, JsonObject json) {
+      ShapedRecipe base = super.fromJson(id, json);
+      List<ResourceLocation> alternatives = JsonHelper.parseList(json, "alternatives", (element, name) -> new ResourceLocation(GsonHelper.convertToString(element, name)));
       return new ShapedFallbackRecipe(base, alternatives);
     }
 
     @Override
-    public ShapedFallbackRecipe read(ResourceLocation id, PacketBuffer buffer) {
-      ShapedRecipe base = super.read(id, buffer);
+    public ShapedFallbackRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buffer) {
+      ShapedRecipe base = super.fromNetwork(id, buffer);
       assert base != null;
       int size = buffer.readVarInt();
       ImmutableList.Builder<ResourceLocation> builder = ImmutableList.builder();
@@ -105,9 +105,9 @@ public class ShapedFallbackRecipe extends ShapedRecipe {
     }
 
     @Override
-    public void write(PacketBuffer buffer, ShapedRecipe recipe) {
+    public void toNetwork(FriendlyByteBuf buffer, ShapedRecipe recipe) {
       // write base recipe
-      super.write(buffer, recipe);
+      super.toNetwork(buffer, recipe);
       // write extra data
       assert recipe instanceof ShapedFallbackRecipe;
       List<ResourceLocation> alternatives = ((ShapedFallbackRecipe) recipe).alternatives;

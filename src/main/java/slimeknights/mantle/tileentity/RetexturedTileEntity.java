@@ -1,9 +1,9 @@
 package slimeknights.mantle.tileentity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.LazyValue;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.util.LazyLoadedValue;
 import net.minecraftforge.client.model.data.IModelData;
 import slimeknights.mantle.util.RetexturedHelper;
 
@@ -13,14 +13,14 @@ import slimeknights.mantle.util.RetexturedHelper;
 public class RetexturedTileEntity extends MantleTileEntity implements IRetexturedTileEntity {
 
   /** Lazy value of model data as it will not change after first fetch */
-  private final LazyValue<IModelData> data = new LazyValue<>(this::getRetexturedModelData);
-  public RetexturedTileEntity(TileEntityType<?> type) {
+  private final LazyLoadedValue<IModelData> data = new LazyLoadedValue<>(this::getRetexturedModelData);
+  public RetexturedTileEntity(BlockEntityType<?> type) {
     super(type);
   }
 
   @Override
   public IModelData getModelData() {
-    return data.getValue();
+    return data.get();
   }
 
   @Override
@@ -29,15 +29,15 @@ public class RetexturedTileEntity extends MantleTileEntity implements IRetexture
   }
 
   @Override
-  public void read(BlockState blockState, CompoundNBT tags) {
+  public void load(CompoundTag tags) {
     String oldName = getTextureName();
-    super.read(blockState, tags);
+    super.load(tags);
     String newName = getTextureName();
     // if the texture name changed, mark the position for rerender
-    if (!oldName.equals(newName) && world != null && world.isRemote) {
-      data.getValue().setData(RetexturedHelper.BLOCK_PROPERTY, getTexture());
+    if (!oldName.equals(newName) && level != null && level.isClientSide) {
+      data.get().setData(RetexturedHelper.BLOCK_PROPERTY, getTexture());
       requestModelDataUpdate();
-      world.notifyBlockUpdate(pos, blockState, blockState, 0);
+      level.sendBlockUpdated(worldPosition, blockState, blockState, 0);
     }
   }
 }

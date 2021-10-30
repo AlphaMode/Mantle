@@ -1,11 +1,11 @@
 package slimeknights.mantle.registration.object;
 
-import net.minecraft.block.FlowingFluidBlock;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.Item;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.item.Item;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.IItemProvider;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.Tags.IOptionalNamedTag;
 import net.minecraftforge.fluids.ForgeFlowingFluid;
 
@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  * @param <F>  Fluid class
  */
 @SuppressWarnings("WeakerAccess")
-public class FluidObject<F extends ForgeFlowingFluid> implements Supplier<F>, IItemProvider {
+public class FluidObject<F extends ForgeFlowingFluid> implements Supplier<F>, ItemLike {
   // TODO: make final in 1.17
   protected ResourceLocation id;
   // TODO: make final in 1.17
@@ -27,10 +27,10 @@ public class FluidObject<F extends ForgeFlowingFluid> implements Supplier<F>, II
   private final Supplier<? extends F> still;
   private final Supplier<? extends F> flowing;
   @Nullable
-  private final Supplier<? extends FlowingFluidBlock> block;
+  private final Supplier<? extends LiquidBlock> block;
 
   /** Main constructor */
-  public FluidObject(ResourceLocation id, String tagName, Supplier<? extends F> still, Supplier<? extends F> flowing, @Nullable Supplier<? extends FlowingFluidBlock> block) {
+  public FluidObject(ResourceLocation id, String tagName, Supplier<? extends F> still, Supplier<? extends F> flowing, @Nullable Supplier<? extends LiquidBlock> block) {
     this.id = id;
     this.localTag = FluidTags.createOptional(id);
     this.forgeTag = FluidTags.createOptional(new ResourceLocation("forge", tagName));
@@ -41,7 +41,7 @@ public class FluidObject<F extends ForgeFlowingFluid> implements Supplier<F>, II
 
   /** @deprecated Use constructor with id and tag name parameter */
   @Deprecated
-  public FluidObject(Supplier<? extends F> still, Supplier<? extends F> flowing, @Nullable Supplier<? extends FlowingFluidBlock> block) {
+  public FluidObject(Supplier<? extends F> still, Supplier<? extends F> flowing, @Nullable Supplier<? extends LiquidBlock> block) {
     this.still = still;
     this.flowing = flowing;
     this.block = block;
@@ -81,7 +81,7 @@ public class FluidObject<F extends ForgeFlowingFluid> implements Supplier<F>, II
    * @return  Block form
    */
   @Nullable
-  public FlowingFluidBlock getBlock() {
+  public LiquidBlock getBlock() {
     if (block == null) {
       return null;
     }
@@ -94,7 +94,7 @@ public class FluidObject<F extends ForgeFlowingFluid> implements Supplier<F>, II
    */
   @Override
   public Item asItem() {
-    return still.get().getFilledBucket();
+    return still.get().getBucket();
   }
 
   /** Gets the mod local tag for this fluid object */

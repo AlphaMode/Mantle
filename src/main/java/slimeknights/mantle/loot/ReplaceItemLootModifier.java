@@ -1,12 +1,12 @@
 package slimeknights.mantle.loot;
 
 import com.google.gson.JsonObject;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.loot.LootContext;
-import net.minecraft.loot.conditions.ILootCondition;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.loot.GlobalLootModifierSerializer;
 import net.minecraftforge.common.loot.LootModifier;
 import slimeknights.mantle.recipe.RecipeHelper;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class ReplaceItemLootModifier extends LootModifier {
   private final Item original;
   private final Item replacement;
-  protected ReplaceItemLootModifier(ILootCondition[] conditionsIn, Item original, Item replacement) {
+  protected ReplaceItemLootModifier(LootItemCondition[] conditionsIn, Item original, Item replacement) {
     super(conditionsIn);
     this.original = original;
     this.replacement = replacement;
@@ -39,9 +39,9 @@ public class ReplaceItemLootModifier extends LootModifier {
 
   public static class Serializer extends GlobalLootModifierSerializer<ReplaceItemLootModifier> {
     @Override
-    public ReplaceItemLootModifier read(ResourceLocation location, JsonObject object, ILootCondition[] conditions) {
-      Item original = RecipeHelper.deserializeItem(JSONUtils.getString(object, "original"), "original", Item.class);
-      Item replacement = RecipeHelper.deserializeItem(JSONUtils.getString(object, "replacement"), "replacement", Item.class);
+    public ReplaceItemLootModifier read(ResourceLocation location, JsonObject object, LootItemCondition[] conditions) {
+      Item original = RecipeHelper.deserializeItem(GsonHelper.getAsString(object, "original"), "original", Item.class);
+      Item replacement = RecipeHelper.deserializeItem(GsonHelper.getAsString(object, "replacement"), "replacement", Item.class);
       return new ReplaceItemLootModifier(conditions, original, replacement);
     }
 

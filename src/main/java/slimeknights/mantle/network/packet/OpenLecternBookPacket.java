@@ -1,10 +1,10 @@
 package slimeknights.mantle.network.packet;
 
 import lombok.AllArgsConstructor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent.Context;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.fmllegacy.network.NetworkEvent.Context;
 import slimeknights.mantle.item.ILecternBookItem;
 
 /**
@@ -15,15 +15,15 @@ public class OpenLecternBookPacket implements IThreadsafePacket {
   private final BlockPos pos;
   private final ItemStack book;
 
-  public OpenLecternBookPacket(PacketBuffer buffer) {
+  public OpenLecternBookPacket(FriendlyByteBuf buffer) {
     this.pos = buffer.readBlockPos();
-    this.book = buffer.readItemStack();
+    this.book = buffer.readItem();
   }
 
   @Override
-  public void encode(PacketBuffer buffer) {
+  public void encode(FriendlyByteBuf buffer) {
     buffer.writeBlockPos(pos);
-    buffer.writeItemStack(book);
+    buffer.writeItem(book);
   }
 
   @Override

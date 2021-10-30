@@ -2,13 +2,13 @@ package slimeknights.mantle.recipe.crafting;
 
 import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.data.IFinishedRecipe;
-import net.minecraft.data.ShapedRecipeBuilder;
-import net.minecraft.item.Item;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.tags.ITag;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.tags.Tag;
+import net.minecraft.resources.ResourceLocation;
 import slimeknights.mantle.recipe.MantleRecipeSerializers;
 
 import javax.annotation.Nullable;
@@ -36,8 +36,8 @@ public class ShapedRetexturedRecipeBuilder {
    * @param tag Tag to use for texture
    * @return Builder instance
    */
-  public ShapedRetexturedRecipeBuilder setSource(ITag<Item> tag) {
-    this.texture = Ingredient.fromTag(tag);
+  public ShapedRetexturedRecipeBuilder setSource(Tag<Item> tag) {
+    this.texture = Ingredient.of(tag);
     return this;
   }
 
@@ -55,9 +55,9 @@ public class ShapedRetexturedRecipeBuilder {
    * Builds the recipe with the default name using the given consumer
    * @param consumer Recipe consumer
    */
-  public void build(Consumer<IFinishedRecipe> consumer) {
+  public void build(Consumer<FinishedRecipe> consumer) {
     this.validate();
-    parent.build(base -> consumer.accept(new Result(base, texture, matchAll)));
+    parent.save(base -> consumer.accept(new Result(base, texture, matchAll)));
   }
 
   /**
@@ -65,9 +65,9 @@ public class ShapedRetexturedRecipeBuilder {
    * @param consumer Recipe consumer
    * @param location Recipe location
    */
-  public void build(Consumer<IFinishedRecipe> consumer, ResourceLocation location) {
+  public void build(Consumer<FinishedRecipe> consumer, ResourceLocation location) {
     this.validate();
-    parent.build(base -> consumer.accept(new Result(base, texture, matchAll)), location);
+    parent.save(base -> consumer.accept(new Result(base, texture, matchAll)), location);
   }
 
   /**
@@ -80,44 +80,44 @@ public class ShapedRetexturedRecipeBuilder {
     }
   }
 
-  private static class Result implements IFinishedRecipe {
-    private final IFinishedRecipe base;
+  private static class Result implements FinishedRecipe {
+    private final FinishedRecipe base;
     private final Ingredient texture;
     private final boolean matchAll;
 
-    private Result(IFinishedRecipe base, Ingredient texture, boolean matchAll) {
+    private Result(FinishedRecipe base, Ingredient texture, boolean matchAll) {
       this.base = base;
       this.texture = texture;
       this.matchAll = matchAll;
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getType() {
       return MantleRecipeSerializers.CRAFTING_SHAPED_RETEXTURED;
     }
 
     @Override
-    public ResourceLocation getID() {
-      return base.getID();
+    public ResourceLocation getId() {
+      return base.getId();
     }
 
     @Override
-    public void serialize(JsonObject json) {
-      base.serialize(json);
-      json.add("texture", texture.serialize());
+    public void serializeRecipeData(JsonObject json) {
+      base.serializeRecipeData(json);
+      json.add("texture", texture.toJson());
       json.addProperty("match_all", matchAll);
     }
 
     @Nullable
     @Override
-    public JsonObject getAdvancementJson() {
-      return base.getAdvancementJson();
+    public JsonObject serializeAdvancement() {
+      return base.serializeAdvancement();
     }
 
     @Nullable
     @Override
-    public ResourceLocation getAdvancementID() {
-      return base.getAdvancementID();
+    public ResourceLocation getAdvancementId() {
+      return base.getAdvancementId();
     }
   }
 }

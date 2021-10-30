@@ -1,10 +1,10 @@
 package slimeknights.mantle.data;
 
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.TagsProvider;
-import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.world.item.Item;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.Registry;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import slimeknights.mantle.Mantle;
 
@@ -29,12 +29,12 @@ public class MantleItemTagProvider extends TagsProvider<Item> {
   }
 
   @Override
-  protected void registerTags() {
-    this.getOrCreateBuilder(MantleTags.Items.OFFHAND_COOLDOWN);
+  protected void addTags() {
+    this.tag(MantleTags.Items.OFFHAND_COOLDOWN);
   }
 
   @Override
-  protected Path makePath(ResourceLocation id) {
+  protected Path getPath(ResourceLocation id) {
     return this.generator.getOutputFolder().resolve("data/" + id.getNamespace() + "/tags/items/" + id.getPath() + ".json");
   }
 }

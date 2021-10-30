@@ -1,13 +1,13 @@
 package slimeknights.mantle.client.book.data.content;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StringUtils;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.feature.template.Template;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.Mantle;
@@ -36,8 +36,8 @@ public class ContentStructure extends PageContent {
 
   public String text;
 
-  public final transient Template template = new Template();
-  public transient List<Template.BlockInfo> templateBlocks = new ArrayList<>();
+  public final transient StructureTemplate template = new StructureTemplate();
+  public transient List<StructureTemplate.StructureBlockInfo> templateBlocks = new ArrayList<>();
 
   @Override
   public void load() {
@@ -48,25 +48,25 @@ public class ContentStructure extends PageContent {
     }
 
     ResourceLocation location = repo.getResourceLocation(this.data);
-    IResource resource = repo.getResource(location);
+    Resource resource = repo.getResource(location);
 
     if (resource == null) {
       return;
     }
 
     try {
-      CompoundNBT compoundnbt = CompressedStreamTools.readCompressed(resource.getInputStream());
-      this.template.read(compoundnbt);
+      CompoundTag compoundnbt = NbtIo.readCompressed(resource.getInputStream());
+      this.template.load(compoundnbt);
     } catch (IOException e) {
       e.printStackTrace();
       return;
     }
 
-    this.templateBlocks = this.template.blocks.get(0).func_237157_a_();
+    this.templateBlocks = this.template.palettes.get(0).blocks();
 
     for (int i = 0; i < this.templateBlocks.size(); i++) {
-      Template.BlockInfo info = this.templateBlocks.get(i);
-      if (info.state == Blocks.AIR.getDefaultState()) {
+      StructureTemplate.StructureBlockInfo info = this.templateBlocks.get(i);
+      if (info.state == Blocks.AIR.defaultBlockState()) {
         this.templateBlocks.remove(i);
         i--;
       } else if (info.state.isAir())
@@ -89,7 +89,7 @@ public class ContentStructure extends PageContent {
     int structureSizeX = BookScreen.PAGE_WIDTH;
     int structureSizeY = BookScreen.PAGE_HEIGHT - y - 10;
 
-    if (!StringUtils.isNullOrEmpty(this.text)) {
+    if (!StringUtil.isNullOrEmpty(this.text)) {
       offset = 15;
       structureSizeX -= 2 * offset;
       structureSizeY -= 2 * offset;

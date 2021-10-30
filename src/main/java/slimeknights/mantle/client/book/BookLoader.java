@@ -2,16 +2,17 @@ package slimeknights.mantle.client.book;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
+
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.resource.IResourceType;
-import net.minecraftforge.resource.ISelectiveResourceReloadListener;
 import slimeknights.mantle.client.book.action.StringActionProcessor;
 import slimeknights.mantle.client.book.action.protocol.ProtocolGoToPage;
 import slimeknights.mantle.client.book.data.BookData;
@@ -39,7 +40,7 @@ import java.util.HashMap;
 import java.util.function.Predicate;
 
 @OnlyIn(Dist.CLIENT)
-public class BookLoader implements ISelectiveResourceReloadListener {
+public class BookLoader implements ResourceManagerReloadListener {
 
   /**
    * GSON object to be used for book loading purposes
@@ -145,9 +146,9 @@ public class BookLoader implements ISelectiveResourceReloadListener {
    * @param hand    Hand
    * @param page    New page
    */
-  public static void updateSavedPage(@Nullable PlayerEntity player, Hand hand, String page) {
+  public static void updateSavedPage(@Nullable Player player, InteractionHand hand, String page) {
     if (player != null) {
-      ItemStack item = player.getHeldItem(hand);
+      ItemStack item = player.getItemInHand(hand);
       if (!item.isEmpty()) {
         BookHelper.writeSavedPageToBook(item, page);
         MantleNetwork.INSTANCE.network.sendToServer(new UpdateHeldPagePacket(hand, page));
@@ -168,7 +169,7 @@ public class BookLoader implements ISelectiveResourceReloadListener {
    * Reloads all the books, called when the resource manager reloads, such as when the resource pack or the language is changed
    */
   @Override
-  public void onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> resourcePredicate) {
+  public void onResourceManagerReload(ResourceManager p_10758_) {
     books.forEach((s, bookData) -> bookData.reset());
   }
 }

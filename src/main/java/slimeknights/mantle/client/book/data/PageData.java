@@ -1,6 +1,6 @@
 package slimeknights.mantle.client.book.data;
 
-import net.minecraft.resources.IResource;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.client.book.BookLoader;
@@ -51,7 +51,7 @@ public class PageData implements IDataItem {
     this.name = this.name.toLowerCase();
 
     if (!this.data.equals("no-load")) {
-      IResource pageInfo = this.source.getResource(this.source.getResourceLocation(this.data));
+      Resource pageInfo = this.source.getResource(this.source.getResourceLocation(this.data));
       if (pageInfo != null) {
         String data = this.source.resourceToString(pageInfo);
         if (!data.isEmpty()) {

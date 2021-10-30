@@ -1,11 +1,11 @@
 package slimeknights.mantle;
 
 import com.google.common.collect.ImmutableSet;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.loot.GlobalLootModifierSerializer;
@@ -17,9 +17,10 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.config.ModConfig.Type;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import slimeknights.mantle.command.MantleCommand;
@@ -63,8 +64,8 @@ public class Mantle {
     IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
     bus.addListener(EventPriority.NORMAL, false, FMLCommonSetupEvent.class, this::commonSetup);
     bus.addListener(EventPriority.NORMAL, false, GatherDataEvent.class, this::gatherData);
-    bus.addListener(EventPriority.NORMAL, false, ModConfig.ModConfigEvent.class, Config::configChanged);
-    bus.addGenericListener(IRecipeSerializer.class, this::registerRecipeSerializers);
+    bus.addListener(EventPriority.NORMAL, false, ModConfigEvent.class, Config::configChanged);
+    bus.addGenericListener(RecipeSerializer.class, this::registerRecipeSerializers);
     bus.addGenericListener(GlobalLootModifierSerializer.class, this::registerGlobalLootModifiers);
     MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, PlayerInteractEvent.RightClickBlock.class, LecternBookItem::interactWithBlock);
   }
@@ -78,9 +79,9 @@ public class Mantle {
     // inject our new signs into the tile entity type
     event.enqueueWork(() -> {
       ImmutableSet.Builder<Block> builder = ImmutableSet.builder();
-      builder.addAll(TileEntityType.SIGN.validBlocks);
+      builder.addAll(BlockEntityType.SIGN.validBlocks);
       RegistrationHelper.forEachSignBlock(builder::add);
-      TileEntityType.SIGN.validBlocks = builder.build();
+      BlockEntityType.SIGN.validBlocks = builder.build();
     });
   }
 
@@ -91,8 +92,8 @@ public class Mantle {
     }
   }
 
-  private void registerRecipeSerializers(final RegistryEvent.Register<IRecipeSerializer<?>> event) {
-    RegistryAdapter<IRecipeSerializer<?>> adapter = new RegistryAdapter<>(event.getRegistry());
+  private void registerRecipeSerializers(final RegistryEvent.Register<RecipeSerializer<?>> event) {
+    RegistryAdapter<RecipeSerializer<?>> adapter = new RegistryAdapter<>(event.getRegistry());
     adapter.register(new ShapedFallbackRecipe.Serializer(), "crafting_shaped_fallback");
     adapter.register(new ShapedRetexturedRecipe.Serializer(), "crafting_shaped_retextured");
 

@@ -1,8 +1,8 @@
 package slimeknights.mantle.client.book.repository;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import slimeknights.mantle.client.book.BookLoader;
 import slimeknights.mantle.client.book.data.SectionData;
@@ -38,8 +38,8 @@ public class FileRepository extends BookRepository {
       String langPath = null;
 
       //noinspection ConstantConditions - this was proven to be null once
-      if (Minecraft.getInstance().getLanguageManager() != null && Minecraft.getInstance().getLanguageManager().getCurrentLanguage() != null) {
-        langPath = Minecraft.getInstance().getLanguageManager().getCurrentLanguage().getCode();
+      if (Minecraft.getInstance().getLanguageManager() != null && Minecraft.getInstance().getLanguageManager().getSelected() != null) {
+        langPath = Minecraft.getInstance().getLanguageManager().getSelected().getCode();
       }
 
       String defaultLangPath = "en_us";
@@ -72,7 +72,7 @@ public class FileRepository extends BookRepository {
   }
 
   @Override
-  public IResource getResource(@Nullable ResourceLocation loc) {
+  public Resource getResource(@Nullable ResourceLocation loc) {
     if (loc == null) {
       return null;
     }
@@ -93,7 +93,7 @@ public class FileRepository extends BookRepository {
   }
 
   @Override
-  public String resourceToString(@Nullable IResource resource, boolean skipComments) {
+  public String resourceToString(@Nullable Resource resource, boolean skipComments) {
     if (resource == null) {
       return "";
     }

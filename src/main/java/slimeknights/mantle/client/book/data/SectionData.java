@@ -2,7 +2,7 @@ package slimeknights.mantle.client.book.data;
 
 import com.google.common.collect.Sets;
 import net.minecraft.advancements.AdvancementProgress;
-import net.minecraft.resources.IResource;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.client.book.BookLoader;
@@ -53,7 +53,7 @@ public class SectionData implements IDataItem {
     this.name = this.name.toLowerCase();
 
     if (!this.data.equals("no-load")) {
-      IResource pagesInfo = this.source.getResource(this.source.getResourceLocation(this.data));
+      Resource pagesInfo = this.source.getResource(this.source.getResourceLocation(this.data));
       if (pagesInfo != null) {
         String data = this.source.resourceToString(pagesInfo);
         if (!data.isEmpty()) {

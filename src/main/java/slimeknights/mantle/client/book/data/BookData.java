@@ -1,13 +1,13 @@
 package slimeknights.mantle.client.book.data;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.Mantle;
@@ -40,7 +40,7 @@ public class BookData implements IDataItem {
   public transient AppearanceData appearance = new AppearanceData();
   public transient ArrayList<ItemStackData.ItemLink> itemLinks = new ArrayList<>();
   public transient HashMap<String, String> strings = new HashMap<>();
-  public transient FontRenderer fontRenderer;
+  public transient Font fontRenderer;
   private transient boolean initialized = false;
 
   protected final transient ArrayList<BookTransformer> transformers = new ArrayList<>();
@@ -116,7 +116,7 @@ public class BookData implements IDataItem {
 
         if (repo.resourceExists(languageLocation)) {
           try {
-            IResource resource = repo.getResource(languageLocation);
+            Resource resource = repo.getResource(languageLocation);
             if (resource != null) {
               BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
               String next = br.readLine();
@@ -372,7 +372,7 @@ public class BookData implements IDataItem {
    * @param page         Starting page
    * @param pageUpdater  Function to call to save the page
    */
-  public void openGui(ITextComponent title, String page, @Nullable Consumer<String> pageUpdater) {
+  public void openGui(Component title, String page, @Nullable Consumer<String> pageUpdater) {
     this.openGui(title, page, pageUpdater, null);
   }
 
@@ -382,9 +382,9 @@ public class BookData implements IDataItem {
    * @param page         Starting page
    * @param pageUpdater  Function to call to save the page
    */
-  public void openGui(ITextComponent title, String page, @Nullable Consumer<String> pageUpdater, @Nullable Consumer<?> bookPickup) {
+  public void openGui(Component title, String page, @Nullable Consumer<String> pageUpdater, @Nullable Consumer<?> bookPickup) {
     this.load();
-    Minecraft.getInstance().displayGuiScreen(new BookScreen(title, this, page, pageUpdater, bookPickup));
+    Minecraft.getInstance().setScreen(new BookScreen(title, this, page, pageUpdater, bookPickup));
   }
 
   /**
@@ -392,18 +392,18 @@ public class BookData implements IDataItem {
    * @param hand   Hand containing the book
    * @param stack  Book stack
    */
-  public void openGui(Hand hand, ItemStack stack) {
+  public void openGui(InteractionHand hand, ItemStack stack) {
     String page = BookHelper.getCurrentSavedPage(stack);
-    openGui(stack.getDisplayName(), page, newPage -> BookLoader.updateSavedPage(Minecraft.getInstance().player, hand, newPage));
+    openGui(stack.getHoverName(), page, newPage -> BookLoader.updateSavedPage(Minecraft.getInstance().player, hand, newPage));
   }
 
   /** @deprecated Use {@link #openGui(Hand, ItemStack)} */
   @Deprecated
-  public void openGui(ITextComponent title, @Nullable ItemStack item) {
+  public void openGui(Component title, @Nullable ItemStack item) {
     if (item == null) {
-      openGui(title, "", newPage -> BookLoader.updateSavedPage(Minecraft.getInstance().player, Hand.MAIN_HAND, newPage));
+      openGui(title, "", newPage -> BookLoader.updateSavedPage(Minecraft.getInstance().player, InteractionHand.MAIN_HAND, newPage));
     } else {
-      openGui(Hand.MAIN_HAND, item);
+      openGui(InteractionHand.MAIN_HAND, item);
     }
   }
 
@@ -420,7 +420,7 @@ public class BookData implements IDataItem {
       MantleNetwork.INSTANCE.network.sendToServer(new DropLecternBookPacket(pos));
     };
 
-    openGui(stack.getDisplayName(), page, newPage -> BookLoader.updateSavedPage(pos, newPage), bookPickup);
+    openGui(stack.getHoverName(), page, newPage -> BookLoader.updateSavedPage(pos, newPage), bookPickup);
   }
 
   /**

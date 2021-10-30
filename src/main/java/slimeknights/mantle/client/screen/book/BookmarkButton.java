@@ -1,14 +1,16 @@
 package slimeknights.mantle.client.screen.book;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.client.book.data.BookmarkData;
+
+import net.minecraft.client.gui.components.Button.OnPress;
 
 @OnlyIn(Dist.CLIENT)
 @Deprecated // Unused and to be removed in upcoming book rework.
@@ -27,18 +29,18 @@ public class BookmarkButton extends Button {
 
   public final BookmarkData data;
 
-  public BookmarkButton(BookmarkData data, IPressable iPressable) {
-    super(-500, -500, WIDTH, HEIGHT, StringTextComponent.EMPTY, iPressable);
+  public BookmarkButton(BookmarkData data, OnPress iPressable) {
+    super(-500, -500, WIDTH, HEIGHT, TextComponent.EMPTY, iPressable);
 
     this.data = data;
   }
 
   @Override
-  public void renderButton(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+  public void renderButton(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
     Minecraft minecraft = Minecraft.getInstance();
     int tex_y = TEX_Y + HEIGHT * this.type;
 
-    minecraft.textureManager.bindTexture(TEX_BOOK);
+    minecraft.textureManager.bind(TEX_BOOK);
 
     float r = ((this.data.color >> 16) & 0xff) / 255.F;
     float g = ((this.data.color >> 8) & 0xff) / 255.F;
@@ -48,7 +50,7 @@ public class BookmarkButton extends Button {
     blit(matrixStack, this.x, this.y, this.width, this.y, TEX_X, tex_y, WIDTH, HEIGHT, 512, 512);
 
     if (this.data.text != null && !this.data.text.isEmpty()) {
-      TextDataRenderer.drawScaledString(matrixStack, minecraft.fontRenderer, this.data.text, this.x + 1, this.y + this.y / 2 - minecraft.fontRenderer.FONT_HEIGHT * TEXT_SCALE / 2 + 1, 0xFFFFFFFF, true, TEXT_SCALE);
+      TextDataRenderer.drawScaledString(matrixStack, minecraft.font, this.data.text, this.x + 1, this.y + this.y / 2 - minecraft.font.lineHeight * TEXT_SCALE / 2 + 1, 0xFFFFFFFF, true, TEXT_SCALE);
     }
 
     RenderSystem.color3f(1F, 1F, 1F);

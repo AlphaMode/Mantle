@@ -14,7 +14,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -45,9 +45,9 @@ public class RetexturedRecipeExtension implements ICraftingCategoryExtension, IC
     this.size = new Size2i(recipe.getRecipeWidth(), recipe.getRecipeHeight());
 
     // gets the outputs of this recipe
-    ItemStack output = this.recipe.getRecipeOutput();
+    ItemStack output = this.recipe.getResultItem();
     // fetch all stacks from the ingredient, note any variants that are not blocks will get a blank shelf
-    List<ItemStack> displayVariants = Arrays.stream(recipe.getTexture().getMatchingStacks())
+    List<ItemStack> displayVariants = Arrays.stream(recipe.getTexture().getItems())
                                             .map(stack -> recipe.getRecipeOutput(stack.getItem()))
                                             .collect(Collectors.toList());
 

@@ -1,9 +1,9 @@
 package slimeknights.mantle.client.screen.book.element;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.gui.Font;
+import com.mojang.blaze3d.platform.Lighting;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import slimeknights.mantle.client.book.data.element.ImageData;
@@ -61,7 +61,7 @@ public class ImageElement extends SizedBookElement {
   }
 
   @Override
-  public void draw(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks, FontRenderer fontRenderer) {
+  public void draw(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks, Font fontRenderer) {
     float r = ((this.colorMultiplier >> 16) & 0xff) / 255.F;
     float g = ((this.colorMultiplier >> 8) & 0xff) / 255.F;
     float b = (this.colorMultiplier & 0xff) / 255.F;
@@ -69,7 +69,7 @@ public class ImageElement extends SizedBookElement {
     RenderSystem.color3f(r, g, b);
 
     if (this.image.item == null) {
-      this.renderEngine.bindTexture(this.image.location);
+      this.renderEngine.bind(this.image.location);
 
       blitRaw(matrixStack, this.x, this.y, this.width, this.height, this.image.u, this.image.u + this.image.uw, this.image.v, this.image.v + this.image.vh, this.image.texWidth, this.image.texHeight);
     }
@@ -78,12 +78,12 @@ public class ImageElement extends SizedBookElement {
       RenderSystem.translatef(this.x, this.y, 0F);
       RenderSystem.scalef(this.width / 16F, this.height / 16F, 1F);
       this.itemElement.draw(matrixStack, mouseX, mouseY, partialTicks, fontRenderer);
-      RenderHelper.disableStandardItemLighting();
+      Lighting.turnOff();
       RenderSystem.popMatrix();
     }
   }
 
-  public static void blitRaw(MatrixStack matrixStack, int x, int y, int w, int h, int minU, int maxU, int minV, int maxV, float tw, float th) {
-    innerBlit(matrixStack.getLast().getMatrix(), x, x + w, y, y + h, 0, minU / tw, maxU / tw, minV / th, maxV / th);
+  public static void blitRaw(PoseStack matrixStack, int x, int y, int w, int h, int minU, int maxU, int minV, int maxV, float tw, float th) {
+    innerBlit(matrixStack.last().pose(), x, x + w, y, y + h, 0, minU / tw, maxU / tw, minV / th, maxV / th);
   }
 }

@@ -1,12 +1,12 @@
 package slimeknights.mantle.client.book.data.content;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.ICraftingRecipe;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.IShapedRecipe;
 import org.apache.commons.lang3.StringUtils;
 import slimeknights.mantle.client.book.data.BookData;
@@ -96,7 +96,7 @@ public class ContentCrafting extends PageContent {
   public void load() {
     super.load();
 
-    if (!StringUtils.isEmpty(recipe) && ResourceLocation.isResouceNameValid(recipe)) {
+    if (!StringUtils.isEmpty(recipe) && ResourceLocation.isValidResourceLocation(recipe)) {
       int w = 0, h = 0;
       switch (grid_size.toLowerCase()) {
         case "large":
@@ -107,13 +107,13 @@ public class ContentCrafting extends PageContent {
           break;
       }
 
-      IRecipe<?> recipe = Minecraft.getInstance().world.getRecipeManager().getRecipe(new ResourceLocation(this.recipe)).orElse(null);
-      if (recipe instanceof ICraftingRecipe) {
-        if (!recipe.canFit(w, h)) {
+      Recipe<?> recipe = Minecraft.getInstance().level.getRecipeManager().byKey(new ResourceLocation(this.recipe)).orElse(null);
+      if (recipe instanceof CraftingRecipe) {
+        if (!recipe.canCraftInDimensions(w, h)) {
           throw new BookLoadException("Recipe " + this.recipe + " cannot fit in a " + w + "x" + h + " crafting grid");
         }
 
-        result = ItemStackData.getItemStackData(recipe.getRecipeOutput());
+        result = ItemStackData.getItemStackData(recipe.getResultItem());
 
         NonNullList<Ingredient> ingredients = recipe.getIngredients();
 
@@ -124,7 +124,7 @@ public class ContentCrafting extends PageContent {
 
           for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[y].length; x++) {
-              grid[y][x] = ItemStackData.getItemStackData(NonNullList.from(ItemStack.EMPTY, ingredients.get(x + y * grid[y].length).getMatchingStacks()));
+              grid[y][x] = ItemStackData.getItemStackData(NonNullList.of(ItemStack.EMPTY, ingredients.get(x + y * grid[y].length).getItems()));
             }
           }
 
@@ -133,7 +133,7 @@ public class ContentCrafting extends PageContent {
 
         grid = new ItemStackData[h][w];
         for (int i = 0; i < ingredients.size(); i++) {
-          grid[i / h][i % w] = ItemStackData.getItemStackData(NonNullList.from(ItemStack.EMPTY, ingredients.get(i).getMatchingStacks()));
+          grid[i / h][i % w] = ItemStackData.getItemStackData(NonNullList.of(ItemStack.EMPTY, ingredients.get(i).getItems()));
         }
       }
     }

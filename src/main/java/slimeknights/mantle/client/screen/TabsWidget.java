@@ -1,13 +1,13 @@
 package slimeknights.mantle.client.screen;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -118,7 +118,7 @@ public class TabsWidget extends Widget {
   }
 
   @Override
-  public void draw(MatrixStack matrixStack) {
+  public void draw(PoseStack matrixStack) {
     int y = this.yPos + this.yOffset;
     for (int i = 0; i < this.icons.size(); i++) {
       int x = this.xPos + i * this.tab[0].w;
@@ -146,13 +146,13 @@ public class TabsWidget extends Widget {
       // todo: draw all the tabs first and then all the itemstacks so it doesn't have to switch texture in between all the time
 
       // rebind texture from drawing an itemstack
-      Minecraft.getInstance().getTextureManager().bindTexture(this.tabsResource);
+      Minecraft.getInstance().getTextureManager().bind(this.tabsResource);
       actualTab.draw(matrixStack,x, y);
 
       ItemStack icon = this.icons.get(i);
       if (icon != null) {
         this.drawItemStack(icon, x + (actualTab.w - 16) / 2, y + (actualTab.h - 16) / 2);
-        RenderHelper.disableStandardItemLighting();
+        Lighting.turnOff();
       }
     }
   }
@@ -161,9 +161,9 @@ public class TabsWidget extends Widget {
   private void drawItemStack(ItemStack stack, int x, int y) {
     ItemRenderer itemRender = Minecraft.getInstance().getItemRenderer();
     RenderSystem.translatef(0.0F, 0.0F, 32.0F);
-    itemRender.zLevel = 200.0F;
+    itemRender.blitOffset = 200.0F;
 
-    itemRender.renderItemAndEffectIntoGUI(stack, x, y);
-    itemRender.zLevel = 0.0F;
+    itemRender.renderAndDecorateItem(stack, x, y);
+    itemRender.blitOffset = 0.0F;
   }
 }

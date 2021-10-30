@@ -1,10 +1,10 @@
 package slimeknights.mantle.inventory;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -16,66 +16,66 @@ public class WrapperSlot extends Slot {
   public final Slot parent;
 
   public WrapperSlot(Slot slot) {
-    super(slot.inventory, slot.getSlotIndex(), slot.xPos, slot.yPos);
+    super(slot.container, slot.getSlotIndex(), slot.x, slot.y);
     this.parent = slot;
   }
 
   @Override
-  public void onSlotChange(ItemStack p_75220_1_, ItemStack p_75220_2_) {
-    this.parent.onSlotChange(p_75220_1_, p_75220_2_);
+  public void onQuickCraft(ItemStack p_75220_1_, ItemStack p_75220_2_) {
+    this.parent.onQuickCraft(p_75220_1_, p_75220_2_);
   }
 
   @Override
-  public void onSlotChanged() {
-    this.parent.onSlotChanged();
+  public void setChanged() {
+    this.parent.setChanged();
   }
 
   @Override
-  public boolean isItemValid(ItemStack stack) {
-    return this.parent.isItemValid(stack);
+  public boolean mayPlace(ItemStack stack) {
+    return this.parent.mayPlace(stack);
   }
 
   @Override
-  public boolean canTakeStack(PlayerEntity playerIn) {
-    return this.parent.canTakeStack(playerIn);
+  public boolean mayPickup(Player playerIn) {
+    return this.parent.mayPickup(playerIn);
   }
 
   @Override
-  public void putStack(ItemStack stack) {
-    this.parent.putStack(stack);
+  public void set(ItemStack stack) {
+    this.parent.set(stack);
   }
 
   @Override
-  public ItemStack onTake(PlayerEntity playerIn, ItemStack stack) {
+  public ItemStack onTake(Player playerIn, ItemStack stack) {
     this.parent.onTake(playerIn, stack);
 
     return stack;
   }
 
   @Override
-  public ItemStack getStack() {
-    return this.parent.getStack();
+  public ItemStack getItem() {
+    return this.parent.getItem();
   }
 
   @Override
-  public boolean getHasStack() {
-    return this.parent.getHasStack();
+  public boolean hasItem() {
+    return this.parent.hasItem();
   }
 
   @Override
-  public int getSlotStackLimit() {
-    return this.parent.getSlotStackLimit();
+  public int getMaxStackSize() {
+    return this.parent.getMaxStackSize();
   }
 
   @Override
-  public int getItemStackLimit(ItemStack stack) {
-    return this.parent.getItemStackLimit(stack);
+  public int getMaxStackSize(ItemStack stack) {
+    return this.parent.getMaxStackSize(stack);
   }
 
   @Override
   @OnlyIn(Dist.CLIENT)
-  public Pair<ResourceLocation, ResourceLocation> getBackground() {
-    return this.parent.getBackground();
+  public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+    return this.parent.getNoItemIcon();
   }
 
   @Override
@@ -84,13 +84,13 @@ public class WrapperSlot extends Slot {
   }
 
   @Override
-  public ItemStack decrStackSize(int amount) {
-    return this.parent.decrStackSize(amount);
+  public ItemStack remove(int amount) {
+    return this.parent.remove(amount);
   }
 
   @OnlyIn(Dist.CLIENT)
   @Override
-  public boolean isEnabled() {
-    return this.parent.isEnabled();
+  public boolean isActive() {
+    return this.parent.isActive();
   }
 }

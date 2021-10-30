@@ -1,7 +1,7 @@
 package slimeknights.mantle.multiblock;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 /**
  * @deprecated  Slated for removal in 1.17. If you used this, talk to one of the devs and we can pull the updated verson from Tinkers Construct back
@@ -22,7 +22,7 @@ public interface IServantLogic {
    * @return whether the servant can be tied to this master
    */
 
-  boolean setPotentialMaster(IMasterLogic master, World world, BlockPos pos);
+  boolean setPotentialMaster(IMasterLogic master, Level world, BlockPos pos);
 
   /**
    * Used to set and verify that this is the block's master
@@ -31,7 +31,7 @@ public interface IServantLogic {
    * @return Is this block tied to this master?
    */
 
-  boolean verifyMaster(IMasterLogic master, World world, BlockPos pos);
+  boolean verifyMaster(IMasterLogic master, Level world, BlockPos pos);
 
   /**
    * Exactly what it says on the tin
@@ -39,5 +39,5 @@ public interface IServantLogic {
    * @param pos position of master
    */
 
-  void invalidateMaster(IMasterLogic master, World world, BlockPos pos);
+  void invalidateMaster(IMasterLogic master, Level world, BlockPos pos);
 }

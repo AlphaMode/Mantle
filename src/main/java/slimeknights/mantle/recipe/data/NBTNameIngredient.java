@@ -2,14 +2,16 @@ package slimeknights.mantle.recipe.data;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.crafting.NBTIngredient;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+
+import net.minecraftforge.common.crafting.NBTIngredient.Serializer;
 
 /**
  * Ingredient for a NBT sensitive item from another mod, should never be used outside datagen
@@ -17,9 +19,9 @@ import java.util.Objects;
 public class NBTNameIngredient extends NBTIngredient {
   private final ResourceLocation name;
   @Nullable
-  private final CompoundNBT nbt;
+  private final CompoundTag nbt;
 
-  protected NBTNameIngredient(ResourceLocation name, @Nullable CompoundNBT nbt) {
+  protected NBTNameIngredient(ResourceLocation name, @Nullable CompoundTag nbt) {
     super(ItemStack.EMPTY);
     this.name = name;
     this.nbt = nbt;
@@ -31,7 +33,7 @@ public class NBTNameIngredient extends NBTIngredient {
    * @param nbt   NBT
    * @return  Ingredient
    */
-  public static NBTNameIngredient from(ResourceLocation name, CompoundNBT nbt) {
+  public static NBTNameIngredient from(ResourceLocation name, CompoundTag nbt) {
     return new NBTNameIngredient(name, nbt);
   }
 
@@ -50,7 +52,7 @@ public class NBTNameIngredient extends NBTIngredient {
   }
 
   @Override
-  public JsonElement serialize() {
+  public JsonElement toJson() {
     JsonObject json = new JsonObject();
     json.addProperty("type", Objects.requireNonNull(CraftingHelper.getID(Serializer.INSTANCE)).toString());
     json.addProperty("item", name.toString());

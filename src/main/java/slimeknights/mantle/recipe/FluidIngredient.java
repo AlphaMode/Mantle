@@ -7,13 +7,13 @@ import com.google.gson.JsonSyntaxException;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.tags.ITag;
-import net.minecraft.tags.TagCollectionManager;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.tags.Tag;
+import net.minecraft.tags.SerializationTags;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import slimeknights.mantle.util.JsonHelper;
@@ -66,7 +66,7 @@ public abstract class FluidIngredient {
     if (displayFluids == null) {
       displayFluids = getAllFluids().stream().filter(stack -> {
         Fluid fluid = stack.getFluid();
-        return fluid.isSource(fluid.getDefaultState());
+        return fluid.isSource(fluid.defaultFluidState());
       }).collect(Collectors.toList());
     }
     return displayFluids;
@@ -88,11 +88,11 @@ public abstract class FluidIngredient {
    * Writes the ingredient into the packet buffer
    * @param buffer Packet buffer instance
    */
-  public void write(PacketBuffer buffer) {
+  public void write(FriendlyByteBuf buffer) {
     Collection<FluidStack> fluids = getAllFluids();
     buffer.writeInt(fluids.size());
     for (FluidStack stack : fluids) {
-      buffer.writeString(Objects.requireNonNull(stack.getFluid().getRegistryName()).toString());
+      buffer.writeUtf(Objects.requireNonNull(stack.getFluid().getRegistryName()).toString());
       buffer.writeInt(stack.getAmount());
     }
   }
@@ -127,7 +127,7 @@ public abstract class FluidIngredient {
    * @param amount  Minimum fluid amount
    * @return  Fluid ingredient from a tag
    */
-  public static FluidIngredient of(ITag<Fluid> fluid, int amount) {
+  public static FluidIngredient of(Tag<Fluid> fluid, int amount) {
     return new FluidIngredient.TagMatch(fluid, amount);
   }
 
@@ -217,11 +217,11 @@ public abstract class FluidIngredient {
    * @param buffer  Buffer instance
    * @return  Fluid ingredient instance
    */
-  public static FluidIngredient read(PacketBuffer buffer) {
+  public static FluidIngredient read(FriendlyByteBuf buffer) {
     int count = buffer.readInt();
     FluidIngredient[] ingredients = new FluidIngredient[count];
     for (int i = 0; i < count; i++) {
-      Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(buffer.readString(32767)));
+      Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(buffer.readUtf(32767)));
       if (fluid == null) {
         fluid = Fluids.EMPTY;
       }
@@ -298,11 +298,11 @@ public abstract class FluidIngredient {
     }
 
     @Override
-    public void write(PacketBuffer buffer) {
+    public void write(FriendlyByteBuf buffer) {
       // count
       buffer.writeInt(1);
       // single fluid
-      buffer.writeString(Objects.requireNonNull(fluid.getRegistryName()).toString());
+      buffer.writeUtf(Objects.requireNonNull(fluid.getRegistryName()).toString());
       buffer.writeInt(amount);
     }
 
@@ -312,12 +312,12 @@ public abstract class FluidIngredient {
      * @return Fluid ingredient instance
      */
     private static FluidMatch deserialize(JsonObject json) {
-      String fluidName = JSONUtils.getString(json, "name");
+      String fluidName = GsonHelper.getAsString(json, "name");
       Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(fluidName));
       if (fluid == null || fluid == Fluids.EMPTY) {
         throw new JsonSyntaxException("Unknown fluid '" + fluidName + "'");
       }
-      int amount = JSONUtils.getInt(json, "amount");
+      int amount = GsonHelper.getAsInt(json, "amount");
       return new FluidMatch(fluid, amount);
     }
   }
@@ -327,7 +327,7 @@ public abstract class FluidIngredient {
    */
   @AllArgsConstructor(access=AccessLevel.PRIVATE)
   private static class TagMatch extends FluidIngredient {
-    private final ITag<Fluid> tag;
+    private final Tag<Fluid> tag;
     private final int amount;
 
     @Override
@@ -342,13 +342,13 @@ public abstract class FluidIngredient {
 
     @Override
     public List<FluidStack> getAllFluids() {
-      return tag.getAllElements().stream().map((fluid) -> new FluidStack(fluid, amount)).collect(Collectors.toList());
+      return tag.getValues().stream().map((fluid) -> new FluidStack(fluid, amount)).collect(Collectors.toList());
     }
 
     @Override
     public JsonElement serialize() {
       JsonObject object = new JsonObject();
-      object.addProperty("tag", TagCollectionManager.getManager().getFluidTags().getValidatedIdFromTag(this.tag).toString());
+      object.addProperty("tag", SerializationTags.getInstance().getFluids().getIdOrThrow(this.tag).toString());
       object.addProperty("amount", amount);
       return object;
     }
@@ -359,12 +359,12 @@ public abstract class FluidIngredient {
      * @return Fluid ingredient instance
      */
     private static TagMatch deserialize(JsonObject json) {
-      String tagName = JSONUtils.getString(json, "tag");
-      ITag<Fluid> tag = TagCollectionManager.getManager().getFluidTags().get(new ResourceLocation(tagName));
+      String tagName = GsonHelper.getAsString(json, "tag");
+      Tag<Fluid> tag = SerializationTags.getInstance().getFluids().getTag(new ResourceLocation(tagName));
       if (tag == null) {
         throw new JsonSyntaxException("Unknown fluid tag '" + tagName + "'");
       }
-      int amount = JSONUtils.getInt(json, "amount");
+      int amount = GsonHelper.getAsInt(json, "amount");
       return new TagMatch(tag, amount);
     }
   }
@@ -428,7 +428,7 @@ public abstract class FluidIngredient {
       FluidIngredient[] ingredients = new FluidIngredient[size];
       for (int i = 0; i < size; i++) {
         // no reason to an array in an array
-        ingredients[i] = deserializeObject(JSONUtils.getJsonObject(array.get(i), name + "[" + i + "]"));
+        ingredients[i] = deserializeObject(GsonHelper.convertToJsonObject(array.get(i), name + "[" + i + "]"));
       }
       return new Compound(ingredients);
     }

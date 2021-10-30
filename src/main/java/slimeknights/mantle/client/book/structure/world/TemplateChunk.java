@@ -2,15 +2,15 @@
 // See: https://github.com/BluSunrize/ImmersiveEngineering/blob/1.16.5/src/main/java/blusunrize/immersiveengineering/common/util/fakeworld/TemplateChunk.java
 package slimeknights.mantle.client.book.structure.world;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.EmptyChunk;
-import net.minecraft.world.gen.feature.template.Template.BlockInfo;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,26 +19,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class TemplateChunk extends EmptyChunk {
+import net.minecraft.world.level.chunk.LevelChunk.EntityCreationType;
 
-  private final Map<BlockPos, BlockInfo> blocksInChunk;
-  private final Map<BlockPos, TileEntity> tiles;
+public class TemplateChunk extends EmptyLevelChunk {
+
+  private final Map<BlockPos, StructureBlockInfo> blocksInChunk;
+  private final Map<BlockPos, BlockEntity> tiles;
   private final Predicate<BlockPos> shouldShow;
 
-  public TemplateChunk(World worldIn, ChunkPos chunkPos, List<BlockInfo> blocksInChunk, Predicate<BlockPos> shouldShow) {
+  public TemplateChunk(Level worldIn, ChunkPos chunkPos, List<StructureBlockInfo> blocksInChunk, Predicate<BlockPos> shouldShow) {
     super(worldIn, chunkPos);
     this.shouldShow = shouldShow;
     this.blocksInChunk = new HashMap<>();
     this.tiles = new HashMap<>();
 
-    for (BlockInfo info : blocksInChunk) {
+    for (StructureBlockInfo info : blocksInChunk) {
       this.blocksInChunk.put(info.pos, info);
 
       if (info.nbt != null) {
-        TileEntity tile = TileEntity.readTileEntity(info.state, info.nbt);
+        BlockEntity tile = BlockEntity.loadStatic(info.state, info.nbt);
 
         if (tile != null) {
-          tile.setWorldAndPos(worldIn, info.pos);
+          tile.setLevelAndPosition(worldIn, info.pos);
           this.tiles.put(info.pos, tile);
         }
       }
@@ -49,13 +51,13 @@ public class TemplateChunk extends EmptyChunk {
   @Override
   public BlockState getBlockState(@Nonnull BlockPos pos) {
     if (this.shouldShow.test(pos)) {
-      BlockInfo result = this.blocksInChunk.get(pos);
+      StructureBlockInfo result = this.blocksInChunk.get(pos);
 
       if (result != null)
         return result.state;
     }
 
-    return Blocks.VOID_AIR.getDefaultState();
+    return Blocks.VOID_AIR.defaultBlockState();
   }
 
   @Nonnull
@@ -67,7 +69,7 @@ public class TemplateChunk extends EmptyChunk {
 
   @Nullable
   @Override
-  public TileEntity getTileEntity(@Nonnull BlockPos pos, @Nonnull CreateEntityType creationMode) {
+  public BlockEntity getBlockEntity(@Nonnull BlockPos pos, @Nonnull EntityCreationType creationMode) {
     if (!this.shouldShow.test(pos))
       return null;
 

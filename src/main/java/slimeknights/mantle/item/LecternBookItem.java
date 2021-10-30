@@ -1,16 +1,18 @@
 package slimeknights.mantle.item;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.LecternBlock;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.LecternTileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LecternBlock;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import slimeknights.mantle.util.TileEntityHelper;
+
+import net.minecraft.world.item.Item.Properties;
 
 /**
  * Book item that can be placed on lecterns
@@ -21,32 +23,32 @@ public abstract class LecternBookItem extends TooltipItem implements ILecternBoo
   }
 
   @Override
-  public ActionResultType onItemUse(ItemUseContext context) {
-    World world = context.getWorld();
-    BlockPos pos = context.getPos();
+  public InteractionResult useOn(UseOnContext context) {
+    Level world = context.getLevel();
+    BlockPos pos = context.getClickedPos();
     BlockState state = world.getBlockState(pos);
-    if (state.isIn(Blocks.LECTERN)) {
-      if (LecternBlock.tryPlaceBook(world, pos, state, context.getItem())) {
-        return ActionResultType.func_233537_a_(world.isRemote);
+    if (state.is(Blocks.LECTERN)) {
+      if (LecternBlock.tryPlaceBook(world, pos, state, context.getItemInHand())) {
+        return InteractionResult.sidedSuccess(world.isClientSide);
       }
     }
-    return ActionResultType.PASS;
+    return InteractionResult.PASS;
   }
 
   /**
    * Event handler to control the lectern GUI
    */
   public static void interactWithBlock(PlayerInteractEvent.RightClickBlock event) {
-    World world = event.getWorld();
+    Level world = event.getWorld();
     // client side has no access to the book, so just skip
-    if (world.isRemote() || event.getPlayer().isSneaking()) {
+    if (world.isClientSide() || event.getPlayer().isShiftKeyDown()) {
       return;
     }
     // must be a lectern, and have the TE
     BlockPos pos = event.getPos();
     BlockState state = world.getBlockState(pos);
-    if (state.isIn(Blocks.LECTERN)) {
-      TileEntityHelper.getTile(LecternTileEntity.class, world, pos)
+    if (state.is(Blocks.LECTERN)) {
+      TileEntityHelper.getTile(LecternBlockEntity.class, world, pos)
                       .ifPresent(te -> {
                         ItemStack book = te.getBook();
                         if (!book.isEmpty() && book.getItem() instanceof ILecternBookItem

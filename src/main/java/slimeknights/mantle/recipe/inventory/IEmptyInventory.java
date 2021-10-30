@@ -1,6 +1,6 @@
 package slimeknights.mantle.recipe.inventory;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Base inventory for inventories that do not use items
@@ -12,7 +12,7 @@ public interface IEmptyInventory extends IReadOnlyInventory {
   /** @deprecated unused method */
   @Deprecated
   @Override
-  default ItemStack getStackInSlot(int index) {
+  default ItemStack getItem(int index) {
     return ItemStack.EMPTY;
   }
 
@@ -26,7 +26,7 @@ public interface IEmptyInventory extends IReadOnlyInventory {
   /** @deprecated always 0, not useful */
   @Deprecated
   @Override
-  default int getSizeInventory() {
+  default int getContainerSize() {
     return 0;
   }
 }

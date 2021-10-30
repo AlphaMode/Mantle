@@ -5,19 +5,16 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.resources.IResource;
-import net.minecraft.resources.IResourceManager;
+
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tags.ITag.Builder;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.ClickEvent.Action;
 import net.minecraftforge.common.ForgeTagHandler;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
@@ -35,8 +32,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import static slimeknights.mantle.command.DumpTagCommand.GSON;
 
@@ -51,8 +46,8 @@ public class DumpAllTagsCommand {
    * Registers this sub command with the root command
    * @param subCommand  Command builder
    */
-  public static void register(LiteralArgumentBuilder<CommandSource> subCommand) {
-    subCommand.requires(sender -> sender.hasPermissionLevel(MantleCommand.PERMISSION_EDIT_SPAWN))
+  public static void register(LiteralArgumentBuilder<CommandSourceStack> subCommand) {
+    subCommand.requires(sender -> sender.hasPermission(MantleCommand.PERMISSION_EDIT_SPAWN))
               .executes(DumpAllTagsCommand::runAll)
               .then(Commands.argument("type", TagCollectionArgument.collection())
                             .executes(DumpAllTagsCommand::runType));
@@ -68,8 +63,8 @@ public class DumpAllTagsCommand {
    * @param file  File
    * @return  Clickable text component
    */
-  protected static ITextComponent getOutputComponent(File file) {
-    return new StringTextComponent(file.getAbsolutePath()).modifyStyle(style -> style.setUnderlined(true).setClickEvent(new ClickEvent(Action.OPEN_FILE, file.getAbsolutePath())));
+  protected static Component getOutputComponent(File file) {
+    return new TextComponent(file.getAbsolutePath()).modifyStyle(style -> style.setUnderlined(true).setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getAbsolutePath())));
   }
 
   /** Dumps all tags to the game directory */
@@ -87,7 +82,7 @@ public class DumpAllTagsCommand {
       }
     }
     // print the output path
-    context.getSource().sendFeedback(new TranslationTextComponent("command.mantle.dump_all_tags.success", getOutputComponent(output)), true);
+    context.getSource().sendMessage(new TranslatableComponent("command.mantle.dump_all_tags.success", getOutputComponent(output)), true);
     return tagsDumped;
   }
 
@@ -97,7 +92,7 @@ public class DumpAllTagsCommand {
     TagCollectionArgument.Result type = context.getArgument("type", TagCollectionArgument.Result.class);
     int result = runForFolder(context, type.getName(), type.getTagFolder(), output);
     // print result
-    context.getSource().sendFeedback(new TranslationTextComponent("command.mantle.dump_all_tags.type_success", type.getName(), getOutputComponent(output)), true);
+    context.getSource().sendMessage(new TranslatableComponent("command.mantle.dump_all_tags.type_success", type.getName(), getOutputComponent(output)), true);
     return result;
   }
 

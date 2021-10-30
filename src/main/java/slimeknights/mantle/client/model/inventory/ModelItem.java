@@ -2,8 +2,8 @@ package slimeknights.mantle.client.model.inventory;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.GsonHelper;
+import com.mojang.math.Vector3f;
 import slimeknights.mantle.client.model.util.ModelHelper;
 import slimeknights.mantle.util.JsonHelper;
 
@@ -76,7 +76,7 @@ public class ModelItem {
    */
   public static ModelItem fromJson(JsonObject json) {
     // if the size is 0, skip rendering this item
-    float size = JSONUtils.getFloat(json, "size");
+    float size = GsonHelper.getAsFloat(json, "size");
     if (size == 0) {
       return ModelItem.EMPTY;
     }

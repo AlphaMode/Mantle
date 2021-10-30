@@ -1,21 +1,21 @@
 package slimeknights.mantle.client.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.client.gui.ScreenManager.IScreenFactory;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.MenuScreens.ScreenConstructor;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 
 /**
  * Generic container screen that simply draws the given background
  * @param <T> Container type
  */
 @SuppressWarnings("WeakerAccess")
-public class BackgroundContainerScreen<T extends Container> extends ContainerScreen<T> {
+public class BackgroundContainerScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
 	/**
 	 * Background drawn for this screen
 	 */
@@ -28,36 +28,36 @@ public class BackgroundContainerScreen<T extends Container> extends ContainerScr
 	 * @param name       Container name
 	 * @param background Container background
 	 */
-	public BackgroundContainerScreen(T container, PlayerInventory inventory, ITextComponent name, int height, ResourceLocation background) {
+	public BackgroundContainerScreen(T container, Inventory inventory, Component name, int height, ResourceLocation background) {
 		super(container, inventory, name);
 		this.background = background;
-		this.ySize = height;
-		this.playerInventoryTitleY = this.ySize - 94;
+		this.imageHeight = height;
+		this.inventoryLabelY = this.imageHeight - 94;
 	}
 
 	@Override
 	protected void init() {
 		super.init();
-		this.titleX = (this.xSize - this.font.getStringPropertyWidth(this.title)) / 2;
+		this.titleLabelX = (this.imageWidth - this.font.width(this.title)) / 2;
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(matrixStack);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
-		this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+		this.renderTooltip(matrixStack, mouseX, mouseY);
 	}
 
 	@Override
-	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		assert this.minecraft != null;
-		this.minecraft.getTextureManager().bindTexture(this.background);
-		this.blit(matrixStack, this.guiLeft, this.guiTop, 0, 0, this.xSize, this.ySize);
+		RenderSystem.setShaderTexture(0, this.background);
+		this.blit(matrixStack, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
 	}
 
 	@RequiredArgsConstructor(staticName = "of")
-	public static class Factory<T extends Container> implements IScreenFactory<T,BackgroundContainerScreen<T>> {
+	public static class Factory<T extends AbstractContainerMenu> implements ScreenConstructor<T,BackgroundContainerScreen<T>> {
 		private final ResourceLocation background;
 		private final int height;
 
@@ -66,12 +66,12 @@ public class BackgroundContainerScreen<T extends Container> extends ContainerScr
 		 * @param height Screen height
 		 * @param name   Name of this container
 		 */
-		public static <T extends Container> Factory<T> ofName(int height, ResourceLocation name) {
+		public static <T extends AbstractContainerMenu> Factory<T> ofName(int height, ResourceLocation name) {
 			return of(new ResourceLocation(name.getNamespace(), String.format("textures/gui/%s.png", name.getPath())), height);
 		}
 
 		@Override
-		public BackgroundContainerScreen<T> create(T container, PlayerInventory inventory, ITextComponent name) {
+		public BackgroundContainerScreen<T> create(T container, Inventory inventory, Component name) {
 			return new BackgroundContainerScreen<>(container, inventory, name, height, background);
 		}
 	}
