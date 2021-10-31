@@ -115,7 +115,7 @@ public class ClientEvents {
             int y = (scaledHeight / 2) - 14 + (2 * (scaledHeight % 2));
             int x = minecraft.getWindow().getGuiScaledWidth() / 2 - 8;
             int width = (int)(cooldown * 17.0F);
-            minecraft.getTextureManager().bindForSetup(GuiComponent.GUI_ICONS_LOCATION);
+            RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
             minecraft.gui.blit(matrixStack, x, y, 36, 94, 16, 4);
             minecraft.gui.blit(matrixStack, x, y, 52, 94, width, 4);
           }
@@ -132,7 +132,7 @@ public class ClientEvents {
           } else {
             x = centerWidth + 91 + 6 + 32;
           }
-          minecraft.getTextureManager().bindForSetup(GuiComponent.GUI_ICONS_LOCATION);
+          RenderSystem.setShaderTexture(0, GuiComponent.GUI_ICONS_LOCATION);
           int l1 = (int)(cooldown * 19.0F);
           RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
           minecraft.gui.blit(matrixStack, x, y, 0, 94, 18, 18);

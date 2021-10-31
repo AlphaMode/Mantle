@@ -180,13 +180,13 @@ public class ExtraHeartRenderHandler {
     this.renderExtraHearts(matrixStack, left, top, player);
     this.renderExtraAbsorption(matrixStack, left, top - rowHeight, player);
 
-    this.mc.getTextureManager().bindForSetup(ICON_VANILLA);
+    RenderSystem.setShaderTexture(0, ICON_VANILLA);
     ((ForgeIngameGui) Minecraft.getInstance().gui).left_height += 10;
     if (absorb > 0) {
       ((ForgeIngameGui) Minecraft.getInstance().gui).left_height += 10;
     }
 
-    event.setCanceled(true);
+    //event.setCanceled(true);
     RenderSystem.disableBlend();
     this.mc.getProfiler().pop();
 //    MinecraftForge.EVENT_BUS.post(new RenderGameOverlayEvent.Post(matrixStack, event, HEALTH)); TODO Figure out why its done this way.
@@ -225,7 +225,7 @@ public class ExtraHeartRenderHandler {
     int potionOffset = this.getPotionOffset(player);
 
     // Extra hearts
-    this.mc.getTextureManager().bindForSetup(ICON_HEARTS);
+    RenderSystem.setShaderTexture(0, ICON_HEARTS);
     int hp = Mth.ceil(player.getHealth());
     this.renderCustomHearts(matrixStack, xBasePos, yBasePos, potionOffset, hp, false);
   }
@@ -241,7 +241,7 @@ public class ExtraHeartRenderHandler {
     int potionOffset = this.getPotionOffset(player);
 
     // Extra hearts
-    this.mc.getTextureManager().bindForSetup(ICON_ABSORB);
+    RenderSystem.setShaderTexture(0, ICON_ABSORB);
     int absorb = Mth.ceil(player.getAbsorptionAmount());
     this.renderCustomHearts(matrixStack, xBasePos, yBasePos, potionOffset, absorb, true);
   }
