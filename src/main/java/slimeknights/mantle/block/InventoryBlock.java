@@ -2,6 +2,8 @@ package slimeknights.mantle.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -24,6 +26,7 @@ import slimeknights.mantle.inventory.BaseContainer;
 import slimeknights.mantle.inventory.EmptyItemHandler;
 import slimeknights.mantle.tileentity.IRenamableContainerProvider;
 import slimeknights.mantle.tileentity.InventoryTileEntity;
+import slimeknights.mantle.util.TickableBlockEntity;
 
 import javax.annotation.Nullable;
 
@@ -132,7 +135,7 @@ public abstract class InventoryBlock extends Block implements EntityBlock {
    * @param worldIn     Tile world
    * @param pos         Tile position
    * @param inventory   Tile entity instance
-   * @deprecated  Will remove in 1.17, use {@link #dropInventoryItems(BlockState, World, BlockPos, IItemHandler)}
+   * @deprecated  Will remove in 1.17, use {@link #dropInventoryItems(BlockState, Level, BlockPos, IItemHandler)}
    */
   @Deprecated
   protected void dropInventoryItems(BlockState state, Level worldIn, BlockPos pos, InventoryTileEntity inventory) {
@@ -177,5 +180,11 @@ public abstract class InventoryBlock extends Block implements EntityBlock {
     super.triggerEvent(state, worldIn, pos, id, param);
     BlockEntity tileentity = worldIn.getBlockEntity(pos);
     return tileentity != null && tileentity.triggerEvent(id, param);
+  }
+
+  @Nullable
+  @Override
+  public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> blockEntityType) {
+    return TickableBlockEntity::tickBlockEntity;
   }
 }

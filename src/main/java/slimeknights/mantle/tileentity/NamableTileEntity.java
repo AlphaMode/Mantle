@@ -28,7 +28,12 @@ public abstract class NamableTileEntity extends MantleTileEntity implements IRen
 		this.defaultName = defaultTitle;
 	}
 
-	@Override
+  @Override
+  public boolean hasCustomName() {
+    return IRenamableContainerProvider.super.hasCustomName();
+  }
+
+  @Override
 	public void load(CompoundTag tags) {
 		super.load(tags);
 		if (tags.contains(TAG_CUSTOM_NAME, NBT.TAG_STRING)) {

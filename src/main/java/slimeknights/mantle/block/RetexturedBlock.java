@@ -2,6 +2,8 @@ package slimeknights.mantle.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +15,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import slimeknights.mantle.item.RetexturedBlockItem;
 import slimeknights.mantle.tileentity.IRetexturedTileEntity;
+import slimeknights.mantle.util.TickableBlockEntity;
 import slimeknights.mantle.util.TileEntityHelper;
 
 import javax.annotation.Nullable;
@@ -70,5 +73,11 @@ public abstract class RetexturedBlock extends Block implements EntityBlock {
     ItemStack stack = new ItemStack(block);
     TileEntityHelper.getTile(IRetexturedTileEntity.class, world, pos).ifPresent(te -> RetexturedBlockItem.setTexture(stack, te.getTextureName()));
     return stack;
+  }
+
+  @Nullable
+  @Override
+  public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level p_153212_, BlockState p_153213_, BlockEntityType<T> p_153214_) {
+    return TickableBlockEntity::tickBlockEntity;
   }
 }
