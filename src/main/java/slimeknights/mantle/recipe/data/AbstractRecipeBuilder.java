@@ -122,9 +122,8 @@ public abstract class AbstractRecipeBuilder<T extends AbstractRecipeBuilder<T>> 
   /** Class to implement basic finished recipe methods */
   @RequiredArgsConstructor
   protected abstract class AbstractFinishedRecipe implements FinishedRecipe {
-    @Getter
     private final ResourceLocation ID;
-    @Getter @Nullable
+    @Nullable
     private final ResourceLocation advancementID;
 
     @Nullable
@@ -134,6 +133,17 @@ public abstract class AbstractRecipeBuilder<T extends AbstractRecipeBuilder<T>> 
         return null;
       }
       return advancementBuilder.serializeToJson();
+    }
+
+    @Override
+    public ResourceLocation getId() {
+      return ID;
+    }
+
+    @Nullable
+    @Override
+    public ResourceLocation getAdvancementId() {
+      return advancementID;
     }
   }
 }
